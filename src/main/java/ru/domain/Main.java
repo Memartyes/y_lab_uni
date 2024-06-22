@@ -7,10 +7,6 @@ import ru.domain.adapters.out.ConsoleOutput;
 import ru.domain.usecases.ConferenceRoomManager;
 import ru.domain.usecases.UserManager;
 
-//"Menu: 1 - Register, 2 - Login, 3 - Create Conference Room, 4 - View Conference Rooms, 5 - Add Workspace
-//       6 - Book Workspace, 7 - Update Conference Room, 8 - Delete Conference Room, 9 - View Available Slots,
-//       10 - Book Conference Room, 11 - Cancel Workspace Booking, 12 - Cancel Conference Room Booking, 13 - Exit
-
 /**
  * Main класс для запуска приложения
  */
