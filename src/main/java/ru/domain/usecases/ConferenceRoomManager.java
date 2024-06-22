@@ -177,4 +177,31 @@ public class ConferenceRoomManager {
         }
         return conferenceRoom.getAvailableSlots(date.atStartOfDay());
     }
+
+    /**
+     * Отмена бронирования рабочих мест в конференц-залах
+     *
+     * @param conferenceRoomId
+     * @param workspaceId
+     */
+    public void cancelBookingForWorkspace(String conferenceRoomId, String workspaceId) {
+        ConferenceRoom conferenceRoom = conferenceRoomRepository.get(conferenceRoomId);
+        if (conferenceRoom == null) {
+            throw new IllegalArgumentException("Conference room with id " + conferenceRoomId + " not found.");
+        }
+        conferenceRoom.cancelBookingForWorkspace(workspaceId);
+    }
+
+    /**
+     * Отмена бронирования Конференц-залов
+     *
+     * @param conferenceRoomId
+     */
+    public void cancelBookingForAllWorkspaces(String conferenceRoomId) {
+        ConferenceRoom conferenceRoom = conferenceRoomRepository.get(conferenceRoomId);
+        if (conferenceRoom == null) {
+            throw new IllegalArgumentException("Conference room with id " + conferenceRoomId + " not found.");
+        }
+        conferenceRoom.cancelBookingForAllWorkspaces();
+    }
 }

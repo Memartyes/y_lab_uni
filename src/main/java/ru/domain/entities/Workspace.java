@@ -9,6 +9,7 @@ import java.time.format.DateTimeFormatter;
  */
 public class Workspace {
     private String id;
+    private boolean booked;
     private String bookedBy;
     private LocalDateTime bookingTime;
 
@@ -18,6 +19,7 @@ public class Workspace {
      */
     public Workspace(String id) {
         this.id = id;
+        this.booked = false;
         this.bookedBy = null; //изначально, рабочее место изначально никем не забронировано
         this.bookingTime = null; //изначально, рабочее место не забронировано ни на какое время
     }
@@ -29,6 +31,16 @@ public class Workspace {
      */
     public String getId() {
         return id;
+    }
+
+    /**
+     * Проверяем, забронировано ли рабочее место
+     *
+     * @return true if workspace is booked, false otherwise
+     */
+    public boolean isBooked() {
+//        return bookedBy != null && !isBookingExpired();
+        return booked;
     }
 
     /**
@@ -46,17 +58,18 @@ public class Workspace {
             throw new IllegalArgumentException("Booking time is not valid");
         }
 
+        this.booked = true;
         this.bookedBy = userId;
         this.bookingTime = time;
     }
 
     /**
-     * Проверяем, забронировано ли рабочее место
-     *
-     * @return true if workspace is booked, false otherwise
+     * Отменяем бронирование
      */
-    public boolean isBooked() {
-        return bookedBy != null && !isBookingExpired();
+    public void cancelBooking() {
+        this.booked = false;
+        this.bookedBy = null;
+        this.bookingTime = null;
     }
 
     /**

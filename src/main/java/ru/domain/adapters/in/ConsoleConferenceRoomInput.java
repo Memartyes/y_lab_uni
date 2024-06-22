@@ -194,4 +194,36 @@ public class ConsoleConferenceRoomInput {
             output.println("Error: " + e.getMessage());
         }
     }
+
+    /**
+     * Обработка запроса на отмену бронирования рабочих мест
+     */
+    public void handleCancelWorkspaceBooking() {
+        output.println("Enter Conference Room ID:");
+        String conferenceRoomId = input.readLine();
+        output.println("Enter Workspace ID:");
+        String workspaceId = input.readLine();
+
+        try {
+            conferenceRoomManager.cancelBookingForWorkspace(conferenceRoomId, workspaceId);
+            output.println("Workspace canceled successfully.");
+        } catch (IllegalArgumentException e) {
+            output.println("Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Обработка запроса на отмену бронирования Конференц-зала
+     */
+    public void handleCancelConferenceRoomBooking() {
+        output.println("Enter Conference Room ID:");
+        String conferenceRoomId = input.readLine();
+
+        try {
+            conferenceRoomManager.cancelBookingForAllWorkspaces(conferenceRoomId);
+            output.println("Conference Room canceled successfully.");
+        } catch (IllegalArgumentException e) {
+            output.println("Error: " + e.getMessage());
+        }
+    }
 }

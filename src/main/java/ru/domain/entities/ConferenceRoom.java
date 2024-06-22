@@ -42,6 +42,15 @@ public class ConferenceRoom {
     }
 
     /**
+     * Возвращаем список рабочих мест.
+     *
+     * @return the list of workspaces
+     */
+    public List<Workspace> getWorkspaces() {
+        return workspaces;
+    }
+
+    /**
      * Добавляем рабочее место в Конференц-зал.
      *
      * @param workspace the workspace to add
@@ -52,15 +61,6 @@ public class ConferenceRoom {
             throw new IllegalStateException("Workspace limit reached");
         }
         workspaces.add(workspace);
-    }
-
-    /**
-     * Возвращаем список рабочих мест.
-     *
-     * @return the list of workspaces
-     */
-    public List<Workspace> getWorkspaces() {
-        return workspaces;
     }
 
     /**
@@ -103,6 +103,7 @@ public class ConferenceRoom {
         return count;
     }
 
+    //FIXME: this one needs to observe
     /**
      * Проверячем если указанное время на бронирование недоступно
      *
@@ -131,14 +132,17 @@ public class ConferenceRoom {
     //FIXME: don't forget to manage this one
     /**
      * Возвращаем лист доступных слотов бронирования по дате
+     *
      * @param date the date to check for available slots
      * @return the list of available workspace slots
      */
     public List<String> getAvailableSlots(LocalDateTime date) {
         List<String> availableSlots = new ArrayList<>();
+
         for (int hour = WorkspaceConfig.START_HOUR.getValue(); hour < WorkspaceConfig.END_HOUR.getValue(); hour++) {
             LocalDateTime slotTime = date.withHour(hour).withMinute(0);
             boolean slotAvailable = true;
+
             for (Workspace workspace : workspaces) {
                 if (workspace.isBooked() && workspace.getBookingTime().equals(slotTime)) {
                     slotAvailable = false;
@@ -165,6 +169,30 @@ public class ConferenceRoom {
         for (Workspace workspace : workspaces) {
             if (!workspace.isBooked()) {
                 workspace.book(userId, bookingTime);
+            }
+        }
+    }
+
+    /**
+     * Отмена бронирования рабочего места
+     *
+     * @param workspaceId the workspace ID
+     */
+    public void cancelBookingForWorkspace(String workspaceId) {
+        Workspace workspace = getWorkspace(workspaceId);
+        if (workspace == null) {
+            throw new IllegalArgumentException("Workspace not found");
+        }
+        workspace.cancelBooking();
+    }
+
+    /**
+     * Отмена бронирования всего Конференц-зала
+     */
+    public void cancelBookingForAllWorkspaces() {
+        for (Workspace workspace : workspaces) {
+            if (workspace.isBooked()) {
+                workspace.cancelBooking();
             }
         }
     }

@@ -8,7 +8,8 @@ import ru.domain.usecases.ConferenceRoomManager;
 import ru.domain.usecases.UserManager;
 
 //"Menu: 1 - Register, 2 - Login, 3 - Create Conference Room, 4 - View Conference Rooms, 5 - Add Workspace
-//       6 - Book Workspace, 7 - Update Conference Room, 8 - Delete Conference Room, 9 - View Available Slots, 10 - Book Conference Room, 11 - Exit
+//       6 - Book Workspace, 7 - Update Conference Room, 8 - Delete Conference Room, 9 - View Available Slots,
+//       10 - Book Conference Room, 11 - Cancel Workspace Booking, 12 - Cancel Conference Room Booking, 13 - Exit
 
 /**
  * Main класс для запуска приложения
@@ -42,6 +43,8 @@ public class Main {
                     "8. Book Workspace\n" +
                     "9. View Available Slots in Conference Room\n" +
                     "10. Book Conference Room\n" +
+                    "11. Cancel Workspace Booking\n" +
+                    "12. Cancel Conference Room Booking\n" +
                     "0. Exit"
             );
             String choice = input.readLine(); //Считываем введенный пользователем номер.
@@ -76,6 +79,12 @@ public class Main {
                     break;
                 case "10": //Бронируем целый Конференц-зал на определенные дату и время
                     conferenceRoomInput.handleBookConferenceRoom();
+                    break;
+                case "11":
+                    conferenceRoomInput.handleCancelWorkspaceBooking();
+                    break;
+                case "12":
+                    conferenceRoomInput.handleCancelConferenceRoomBooking();
                     break;
                 case "0":  //Выход из консоли
                     output.println("Goodbye!");
