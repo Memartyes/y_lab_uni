@@ -1,4 +1,4 @@
-package ru.domain.usecases;
+package ru.domain.managers;
 
 import ru.domain.entities.User;
 

@@ -1,11 +1,11 @@
 package ru.domain;
 
-import ru.domain.adapters.in.ConsoleConferenceRoomInput;
-import ru.domain.adapters.in.ConsoleUserInput;
-import ru.domain.adapters.in.ConsoleInput;
-import ru.domain.adapters.out.ConsoleOutput;
-import ru.domain.usecases.ConferenceRoomManager;
-import ru.domain.usecases.UserManager;
+import ru.domain.io.ConsoleConferenceRoomInput;
+import ru.domain.io.ConsoleUserInput;
+import ru.domain.io.ConsoleInput;
+import ru.domain.io.ConsoleOutput;
+import ru.domain.managers.ConferenceRoomManager;
+import ru.domain.managers.UserManager;
 
 /**
  * Main класс для запуска приложения

@@ -1,5 +1,7 @@
 package ru.domain.entities;
 
+import ru.domain.config.WorkspaceConfig;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 

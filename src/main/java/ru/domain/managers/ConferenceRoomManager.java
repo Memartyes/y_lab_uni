@@ -1,7 +1,7 @@
-package ru.domain.usecases;
+package ru.domain.managers;
 
 import ru.domain.entities.ConferenceRoom;
-import ru.domain.entities.DefaultConferenceRooms;
+import ru.domain.config.DefaultConferenceRooms;
 import ru.domain.entities.Workspace;
 
 import java.util.ArrayList;

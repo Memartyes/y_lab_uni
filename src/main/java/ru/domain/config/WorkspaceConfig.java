@@ -1,7 +1,4 @@
-package ru.domain.entities;
-
-import java.util.Arrays;
-import java.util.List;
+package ru.domain.config;
 
 /**
  * Добавим ENUM для удобства быстрой смены максимального параметр вместимости рабочих мест в Конференц-зале

@@ -1,4 +1,4 @@
-package ru.domain.entities;
+package ru.domain.config;
 
 /**
  * Enum для определения Конференц-залов по умолчанию

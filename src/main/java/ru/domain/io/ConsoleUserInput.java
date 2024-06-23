@@ -1,7 +1,6 @@
-package ru.domain.adapters.in;
+package ru.domain.io;
 
-import ru.domain.adapters.out.ConsoleOutput;
-import ru.domain.usecases.UserManager;
+import ru.domain.managers.UserManager;
 
 /**
  * Обрабатываем консольный ввод для пользовательских операций

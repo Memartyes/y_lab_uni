@@ -1,6 +1,7 @@
 package ru.domain.entities;
 
-import java.time.DayOfWeek;
+import ru.domain.config.WorkspaceConfig;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;

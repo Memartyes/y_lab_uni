@@ -1,7 +1,6 @@
-package ru.domain.adapters.in;
+package ru.domain.io;
 
-import ru.domain.adapters.out.ConsoleOutput;
-import ru.domain.usecases.ConferenceRoomManager;
+import ru.domain.managers.ConferenceRoomManager;
 import ru.domain.entities.ConferenceRoom;
 import ru.domain.entities.Workspace;
 

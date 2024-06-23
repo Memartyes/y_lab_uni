@@ -1,4 +1,4 @@
-package ru.domain.adapters.in;
+package ru.domain.io;
 
 import java.util.Scanner;
 

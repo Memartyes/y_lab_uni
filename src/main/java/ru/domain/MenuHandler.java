@@ -1,11 +1,9 @@
 package ru.domain;
 
-import ru.domain.adapters.in.ConsoleConferenceRoomInput;
-import ru.domain.adapters.in.ConsoleUserInput;
-import ru.domain.adapters.in.ConsoleInput;
-import ru.domain.adapters.out.ConsoleOutput;
-
-import java.util.Scanner;
+import ru.domain.io.ConsoleConferenceRoomInput;
+import ru.domain.io.ConsoleUserInput;
+import ru.domain.io.ConsoleInput;
+import ru.domain.io.ConsoleOutput;
 
 /**
  * Класс для обработки бизнес-логики запуска приложения

@@ -1,4 +1,4 @@
-package ru.domain.adapters.out;
+package ru.domain.io;
 
 import java.util.List;
 
