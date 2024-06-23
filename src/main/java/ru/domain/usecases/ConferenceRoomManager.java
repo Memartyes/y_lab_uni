@@ -137,26 +137,6 @@ public class ConferenceRoomManager {
     }
 
     /**
-     * Берем самый свободный КОнференц-зал
-     *
-     * @return the conference room with the most available workspaces
-     */
-    public ConferenceRoom getConferenceRoomWithMostAvailableWorkspaces() {
-        ConferenceRoom availableRoom = null;
-        int maxAvailable = 0;
-
-        for (ConferenceRoom conferenceRoom : conferenceRoomRepository.values()) {
-            int available = conferenceRoom.getAvailableWorkspaceCount();
-
-            if (available > maxAvailable) {
-                maxAvailable = available;
-                availableRoom = conferenceRoom;
-            }
-        }
-        return availableRoom;
-    }
-
-    /**
      * Возвращаем репозиторий Конференц-зал'ов
      *
      * @return the conference room repository
@@ -205,16 +185,6 @@ public class ConferenceRoomManager {
             throw new IllegalArgumentException("Conference room with id " + conferenceRoomId + " not found.");
         }
         conferenceRoom.cancelBookingForAllWorkspaces();
-    }
-
-    public List<ConferenceRoom> filterBookings(LocalDateTime date, String userId, boolean availableOnly) {
-        List<ConferenceRoom> filteredRooms = new ArrayList<>();
-        for (ConferenceRoom room : conferenceRoomRepository.values()) {
-            if (room.hasBooking(date, userId, availableOnly)) {
-                filteredRooms.add(room);
-            }
-        }
-        return filteredRooms;
     }
 
     public List<String> filterByDate(LocalDate date) {
