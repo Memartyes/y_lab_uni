@@ -217,25 +217,40 @@ public class ConsoleConferenceRoomInput {
     }
 
     public void filterBooking() {
-        output.println("Enter date (yyyy-MM-dd) or press Enter to skip: ");
+        output.println("Filter by (1) Date, (2) User, (3) Available Workspaces: ");
+        String choice = input.readLine();
+
+        switch (choice) {
+            case "1":
+                filterByDate();
+                break;
+            case "2":
+                filterByUser();
+                break;
+            case "3":
+                filterByAvailableWorkspaces();
+            default:
+                output.println("Invalid option.");
+        }
+    }
+
+    private void filterByDate() {
+        output.println("Enter date (yyyy-MM-dd): ");
         String dateInput = input.readLine();
-        LocalDateTime date = dateInput.isEmpty() ? null : LocalDateTime.parse(dateInput + "T00:00:00");
+        LocalDate date = LocalDate.parse(dateInput);
+        List<String> results = conferenceRoomManager.filterByDate(date);
+        output.printList(results);
+    }
 
-        output.println("Enter User ID or press Enter to skip: ");
+    private void filterByUser() {
+        output.println("Enter user ID: ");
         String userId = input.readLine();
-        if (userId.isEmpty()) {
-            userId = null;
-        }
+        List<String> results = conferenceRoomManager.filterByUser(userId);
+        output.printList(results);
+    }
 
-        output.println("Only show available rooms? (yes/no)");
-        boolean onlyAvailable = input.readLine().equalsIgnoreCase("yes");
-
-        List<ConferenceRoom> filteredRooms = conferenceRoomManager.filterBookings(date, userId, onlyAvailable);
-        for (ConferenceRoom room : filteredRooms) {
-            output.println("Conference Room: " + room.getName());
-            for (Workspace workspace : room.getWorkspaces()) {
-                output.println(" " + workspace.getId() + " - " + (workspace.isBooked() ? "Booked by " + workspace.getBookedBy() + " at " + workspace.getBookingTime() : "Available to book"));
-            }
-        }
+    private void filterByAvailableWorkspaces() {
+        List<String> results = conferenceRoomManager.filterByAvailableWorkspaces();
+        output.printList(results);
     }
 }

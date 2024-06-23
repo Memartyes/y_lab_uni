@@ -185,6 +185,20 @@ public class ConferenceRoom {
         return false;
     }
 
+    public boolean hasBookingOnDate(LocalDate date) {
+        return workspaces.stream()
+                .anyMatch(ws -> ws.isBooked() && ws.getBookingTime().toLocalDate().isEqual(date));
+    }
+
+    public boolean hasBookingByUser(String userId) {
+        return workspaces.stream()
+                .anyMatch(ws -> ws.isBooked() && ws.getBookedBy().equals(userId));
+    }
+
+    public boolean hasAvailableWorkspaces() {
+        return workspaces.stream().anyMatch(ws -> !ws.isBooked());
+    }
+
     /**
      * Метод для бронирования всего Конференц-зала
      *

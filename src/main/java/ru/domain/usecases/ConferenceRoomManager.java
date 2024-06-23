@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 /**
  * Определим класс для управления Конференц-залами и рабочими местами.
@@ -214,5 +215,32 @@ public class ConferenceRoomManager {
             }
         }
         return filteredRooms;
+    }
+
+    public List<String> filterByDate(LocalDate date) {
+        List<String> results = new ArrayList<>();
+        for (ConferenceRoom room : conferenceRoomRepository.values()) {
+            if (room.hasBookingOnDate(date)) {
+                results.add(room.getName() + " has booking on " + date);
+            }
+        }
+        return results;
+    }
+
+    public List<String> filterByUser(String userId) {
+        List<String> results = new ArrayList<>();
+        for (ConferenceRoom room : conferenceRoomRepository.values()) {
+            if (room.hasBookingByUser(userId)) {
+                results.add(room.getName() + " has bookings by user " + userId);
+            }
+        }
+        return results;
+    }
+
+    public List<String> filterByAvailableWorkspaces() {
+        return conferenceRoomRepository.values().stream()
+                .filter(ConferenceRoom::hasAvailableWorkspaces)
+                .map(room -> room.getName() + " has available workspaces")
+                .collect(Collectors.toList());
     }
 }

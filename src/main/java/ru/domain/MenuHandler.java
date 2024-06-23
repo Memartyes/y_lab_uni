@@ -84,7 +84,6 @@ public class MenuHandler {
                     conferenceRoomInput.cancelConferenceRoomBooking();
                     break;
                 case "13": //Фильтруем Конференц-зал по Date, User, Available Workspaces
-                    //FIXME: filter realisation in progress.
                     conferenceRoomInput.filterBooking();
                     break;
                 case "0":  //Выход из консоли
