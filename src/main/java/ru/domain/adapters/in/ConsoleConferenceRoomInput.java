@@ -217,7 +217,7 @@ public class ConsoleConferenceRoomInput {
     }
 
     public void filterBooking() {
-        output.println("Enter date (yyyy-HH-dd) or press Enter to skip: ");
+        output.println("Enter date (yyyy-MM-dd) or press Enter to skip: ");
         String dateInput = input.readLine();
         LocalDateTime date = dateInput.isEmpty() ? null : LocalDateTime.parse(dateInput + "T00:00:00");
 

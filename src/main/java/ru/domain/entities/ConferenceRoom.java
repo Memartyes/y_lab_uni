@@ -171,6 +171,10 @@ public class ConferenceRoom {
     }
 
     public boolean hasBooking(LocalDateTime date, String userId, boolean availableOnly) {
+        if (date == null) {
+            throw new IllegalArgumentException("Date cannot be null");
+        }
+
         for (Workspace workspace : workspaces) {
             if (workspace.isBooked() && workspace.getBookingTime().toLocalDate().isEqual(date.toLocalDate())) {
                 if (!availableOnly || (userId != null && workspace.getBookedBy().equals(userId))) {
