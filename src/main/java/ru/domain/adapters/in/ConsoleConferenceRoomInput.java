@@ -36,7 +36,7 @@ public class ConsoleConferenceRoomInput {
     /**
      * Обработка запроса на создание нового Конференц-зала.
      */
-    public void handleCreateConferenceRoom() {
+    public void createConferenceRoom() {
         output.println("Enter Conference Room ID:");
         String id = input.readLine();
 
@@ -51,10 +51,10 @@ public class ConsoleConferenceRoomInput {
     /**
      * Обрабатываем запрос на смотр всех Конференц-зал'ов и доступных рабочих мест.
      */
-    public void handleViewConferenceRooms() {
+    public void viewConferenceRooms() {
         output.println("Available Conference Rooms:");
         for (ConferenceRoom room : conferenceRoomManager.getConferenceRoomRepository().values()) {
-            output.println("Conference Room ID: " + room.getId() + "\nAvailable Workspaces: " + room.getAvailableWorkspaceCount());
+            output.println("Conference Room ID: " + room.getName() + "\nAvailable Workspaces: " + room.getAvailableWorkspaceCount());
 
             for (Workspace workspace : room.getWorkspaces()) {
                 if (workspace.isBooked()) {
@@ -66,11 +66,42 @@ public class ConsoleConferenceRoomInput {
         }
     }
 
-    //TODO: manage that if the 'IllegalStateException' throws, offer the user other alternative workspace with the most available slots
+    /**
+     * Обрабатываем запрос на изменение ID Конференц-зала
+     */
+    public void updateConferenceRoom() {
+        output.println("Enter the old Conference Room ID:");
+        String oldId = input.readLine();
+        output.println("Enter the new Conference Room ID:");
+        String newId = input.readLine();
+
+        try {
+            conferenceRoomManager.updateConferenceRoom(oldId, newId);
+            output.println("Conference Room updated successfully.");
+        } catch (IllegalArgumentException e) {
+            output.println("Error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Обрабатываем запрос на удаление Конференц-зала
+     */
+    public void deleteConferenceRoom() {
+        output.println("Enter Conference Room ID:");
+        String id = input.readLine();
+
+        try {
+            conferenceRoomManager.deleteConferenceRoom(id);
+            output.println("Conference Room deleted successfully.");
+        } catch (IllegalArgumentException e) {
+            output.println("Error: " + e.getMessage());
+        }
+    }
+
     /**
      * Обработка добавления рабочих мест в Конференц-зал.
      */
-    public void handleAddWorkspace() {
+    public void addWorkspace() {
         output.println("Enter Conference Room ID:");
         String conferenceRoomId = input.readLine();
         output.println("Enter Workspace ID:");
@@ -79,25 +110,15 @@ public class ConsoleConferenceRoomInput {
         try {
             conferenceRoomManager.addWorkspaceToConferenceRoom(conferenceRoomId, workspaceId);
             output.println("Workspace added successfully.");
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
             output.println("Error: " + e.getMessage());
-        } catch (IllegalStateException e) {
-            output.println("Error: " + e.getMessage()); //FIXME: manage the exception logic here
-            ConferenceRoom alternativeRoom = conferenceRoomManager.getConferenceRoomWithMostAvailableWorkspaces();
-
-            if (alternativeRoom != null) {
-                int availableWorkspaces = alternativeRoom.getAvailableWorkspaceCount();
-                output.println("Alternative Conference Room: " + alternativeRoom.getId() + " with " + availableWorkspaces + " available workspaces");
-            } else {
-                output.println("No available conference rooms found");
-            }
         }
     }
 
     /**
      * Обрабатываем запрос на бронирование рабочих мест
      */
-    public void handleBookWorkspace() {
+    public void bookWorkspace() {
         output.println("Enter Conference Room ID:");
         String conferenceRoomId = input.readLine();
         output.println("Enter Workspace ID:");
@@ -119,41 +140,9 @@ public class ConsoleConferenceRoomInput {
     }
 
     /**
-     * Обрабатываем запрос на изменение ID Конференц-зала
-     */
-    public void handleUpdateConferenceRoom() {
-        output.println("Enter the old Conference Room ID:");
-        String oldId = input.readLine();
-        output.println("Enter the new Conference Room ID:");
-        String newId = input.readLine();
-
-        try {
-            conferenceRoomManager.updateConferenceRoom(oldId, newId);
-            output.println("Conference Room updated successfully.");
-        } catch (IllegalArgumentException e) {
-            output.println("Error: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Обрабатываем запрос на удаление Конференц-зала
-     */
-    public void handleDeleteConferenceRoom() {
-        output.println("Enter Conference Room ID:");
-        String id = input.readLine();
-
-        try {
-            conferenceRoomManager.deleteConferenceRoom(id);
-            output.println("Conference Room deleted successfully.");
-        } catch (IllegalArgumentException e) {
-            output.println("Error: " + e.getMessage());
-        }
-    }
-
-    /**
      * Обрабатываем запрос на показ доступных слотов в Конференц-залах
      */
-    public void handleViewAvailableSlots() {
+    public void viewAvailableSlots() {
         output.println("Enter Conference Room ID:");
         String conferenceRoomId = input.readLine();
         output.println("Enter Date (yyyy-MM-dd)");
@@ -176,7 +165,7 @@ public class ConsoleConferenceRoomInput {
     /**
      * Метод для обработки запроса на бронирование всего Конференц-зала
      */
-    public void handleBookConferenceRoom() {
+    public void bookConferenceRoom() {
         output.println("Enter Conference Room ID:");
         String conferenceRoomId = input.readLine();
         output.println("Enter User ID:");
@@ -198,7 +187,7 @@ public class ConsoleConferenceRoomInput {
     /**
      * Обработка запроса на отмену бронирования рабочих мест
      */
-    public void handleCancelWorkspaceBooking() {
+    public void cancelWorkspaceBooking() {
         output.println("Enter Conference Room ID:");
         String conferenceRoomId = input.readLine();
         output.println("Enter Workspace ID:");
@@ -215,7 +204,7 @@ public class ConsoleConferenceRoomInput {
     /**
      * Обработка запроса на отмену бронирования Конференц-зала
      */
-    public void handleCancelConferenceRoomBooking() {
+    public void cancelConferenceRoomBooking() {
         output.println("Enter Conference Room ID:");
         String conferenceRoomId = input.readLine();
 
@@ -224,6 +213,29 @@ public class ConsoleConferenceRoomInput {
             output.println("Conference Room canceled successfully.");
         } catch (IllegalArgumentException e) {
             output.println("Error: " + e.getMessage());
+        }
+    }
+
+    public void filterBooking() {
+        output.println("Enter date (yyyy-HH-dd) or press Enter to skip: ");
+        String dateInput = input.readLine();
+        LocalDateTime date = dateInput.isEmpty() ? null : LocalDateTime.parse(dateInput + "T00:00:00");
+
+        output.println("Enter User ID or press Enter to skip: ");
+        String userId = input.readLine();
+        if (userId.isEmpty()) {
+            userId = null;
+        }
+
+        output.println("Only show available rooms? (yes/no)");
+        boolean onlyAvailable = input.readLine().equalsIgnoreCase("yes");
+
+        List<ConferenceRoom> filteredRooms = conferenceRoomManager.filterBookings(date, userId, onlyAvailable);
+        for (ConferenceRoom room : filteredRooms) {
+            output.println("Conference Room: " + room.getName());
+            for (Workspace workspace : room.getWorkspaces()) {
+                output.println(" " + workspace.getId() + " - " + (workspace.isBooked() ? "Booked by " + workspace.getBookedBy() + " at " + workspace.getBookingTime() : "Available to book"));
+            }
         }
     }
 }

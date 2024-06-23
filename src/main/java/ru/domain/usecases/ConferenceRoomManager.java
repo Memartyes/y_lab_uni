@@ -4,6 +4,7 @@ import ru.domain.entities.ConferenceRoom;
 import ru.domain.entities.DefaultConferenceRooms;
 import ru.domain.entities.Workspace;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
@@ -118,7 +119,7 @@ public class ConferenceRoomManager {
         }
 
         ConferenceRoom conferenceRoom = conferenceRoomRepository.remove(oldId);
-        conferenceRoom.setId(newId);
+        conferenceRoom.setName(newId);
         conferenceRoomRepository.put(newId, conferenceRoom);
     }
 
@@ -203,5 +204,15 @@ public class ConferenceRoomManager {
             throw new IllegalArgumentException("Conference room with id " + conferenceRoomId + " not found.");
         }
         conferenceRoom.cancelBookingForAllWorkspaces();
+    }
+
+    public List<ConferenceRoom> filterBookings(LocalDateTime date, String userId, boolean availableOnly) {
+        List<ConferenceRoom> filteredRooms = new ArrayList<>();
+        for (ConferenceRoom room : conferenceRoomRepository.values()) {
+            if (room.hasBooking(date, userId, availableOnly)) {
+                filteredRooms.add(room);
+            }
+        }
+        return filteredRooms;
     }
 }

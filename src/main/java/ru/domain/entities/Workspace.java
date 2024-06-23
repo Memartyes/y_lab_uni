@@ -1,6 +1,5 @@
 package ru.domain.entities;
 
-import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -39,7 +38,6 @@ public class Workspace {
      * @return true if workspace is booked, false otherwise
      */
     public boolean isBooked() {
-//        return bookedBy != null && !isBookingExpired();
         return booked;
     }
 
@@ -47,24 +45,16 @@ public class Workspace {
      * Бронируем рабочее место
      *
      * @param userId the user's ID who books the workspace
-     * @param time the booking time
+     * @param bookingTime the booking time
      */
-    public void book(String userId, LocalDateTime time) {
-        if(bookedBy != null && !isBookingExpired()) {
-            throw new IllegalStateException("Workspace is already booked");
-        }
-
-        if (!isBookingTimeValid(time)) {
-            throw new IllegalArgumentException("Booking time is not valid");
-        }
-
+    public void book(String userId, LocalDateTime bookingTime) {
         this.booked = true;
         this.bookedBy = userId;
-        this.bookingTime = time;
+        this.bookingTime = bookingTime;
     }
 
     /**
-     * Отменяем бронирование
+     * Отменяем бронирование рабочих мест
      */
     public void cancelBooking() {
         this.booked = false;
@@ -78,25 +68,16 @@ public class Workspace {
      * @return the user's ID who booked the workspace, or null if not booked
      */
     public String getBookedBy() {
-        return isBookingExpired() ? null : bookedBy;
+        return bookedBy;
     }
 
     /**
-     * Проверяем доступность бронирования на подходящее время и рабочий день.
+     * Возвращаем забронированное время
      *
-     * @param time the booking time
-     * @return true if the booking time is valid, false otherwise
+     * @return the booking time
      */
-    public boolean isBookingTimeValid(LocalDateTime time) {
-        int hour = time.getHour();
-        String dayOfWeek = time.getDayOfWeek().name();
-
-        for (DayOfWeek validDay : WorkspaceConfig.WORK_DAYS.getDays()) {
-            if (validDay.toString().equalsIgnoreCase(dayOfWeek)) {
-                return hour >= WorkspaceConfig.START_HOUR.getValue() && hour < WorkspaceConfig.END_HOUR.getValue();
-            }
-        }
-        return false;
+    public LocalDateTime getBookingTime() {
+        return bookingTime;
     }
 
     /**
@@ -106,18 +87,6 @@ public class Workspace {
      */
     public boolean isBookingExpired() {
         return bookingTime != null && LocalDateTime.now().isAfter(bookingTime.plusHours(WorkspaceConfig.BOOKING_DURATION_HOURS.getValue()));
-    }
-
-    /**
-     * Возвращаем забронированное время
-     *
-     * @return the booking time, or null if not booked
-     */
-    public String getBookingTime() {
-        if (bookingTime != null && !isBookingExpired()) {
-            return bookingTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        }
-        return null;
     }
 
     /**

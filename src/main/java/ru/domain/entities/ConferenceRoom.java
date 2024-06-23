@@ -1,6 +1,7 @@
 package ru.domain.entities;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;
 import java.time.LocalDateTime;
@@ -10,35 +11,59 @@ import java.time.LocalTime;
  * Определяем класс Конференц-зала который содержит рабочие места (Workspace).
  */
 public class ConferenceRoom {
-    private String id;
+    private String name;
     private List<Workspace> workspaces;
 
     /**
      * Создаем новый Конференц-зал.
      *
-     * @param id the conference room ID
+     * @param name the conference room name
      */
-    public ConferenceRoom(String id) {
-        this.id = id;
+    public ConferenceRoom(String name) {
+        this.name = name;
         this.workspaces = new ArrayList<>();
         initializeWorkspace();
     }
 
     /**
-     * Возвращаем ID Конференц-зала.
-     *
-     * @return the conference room ID
+     * Определим рабочие места по умолчанию
      */
-    public String getId() {
-        return id;
+    public void initializeWorkspace() {
+        for (int i = 1; i <= WorkspaceConfig.WORKSPACES_CAPACITY.getValue(); i++) {
+            this.workspaces.add(new Workspace(String.valueOf(i)));
+        }
     }
 
     /**
-     * Устанавливаем новый ID в Конференц-зал
-     * @param id the new conference room ID
+     * Возвращаем название Конференц-зала.
+     *
+     * @return the conference room name
      */
-    public void setId(String id) {
-        this.id = id;
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Устанавливаем новое название для Конференц-зала
+     * @param name the new conference room name
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * Получаем рабочее место по ID.
+     *
+     * @param workspaceId the workspace ID
+     * @return the workspace with the workspaceId, or null if not found
+     */
+    public Workspace getWorkspace(String workspaceId) {
+        for (Workspace workspace : workspaces) {
+            if (workspace.getId().equals(workspaceId)) {
+                return workspace;
+            }
+        }
+        return null;
     }
 
     /**
@@ -60,32 +85,7 @@ public class ConferenceRoom {
         if (workspaces.size() >= WorkspaceConfig.WORKSPACES_CAPACITY.getValue()) {
             throw new IllegalStateException("Workspace limit reached");
         }
-        workspaces.add(workspace);
-    }
-
-    /**
-     * Получаем рабочее место по ID.
-     *
-     * @param workspaceId the workspace ID
-     * @return the workspace with the workspaceId, or null if not found
-     */
-    public Workspace getWorkspace(String workspaceId) {
-        for (Workspace workspace : workspaces) {
-            if (workspace.getId().equals(workspaceId)) {
-                return workspace;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Определим рабочие места по умолчанию с лимитом
-     * указанным в WorkspaceConfig.WORKSPACES_CAPACITY.
-     */
-    public void initializeWorkspace() {
-        for (int i = 1; i <= WorkspaceConfig.WORKSPACES_CAPACITY.getValue(); i++) {
-            this.workspaces.add(new Workspace(String.valueOf(i)));
-        }
+        this.workspaces.add(workspace);
     }
 
     /**
@@ -103,33 +103,47 @@ public class ConferenceRoom {
         return count;
     }
 
-    //FIXME: this one needs to observe
     /**
-     * Проверячем если указанное время на бронирование недоступно
+     * Проверка Конференц-зала на доступность бронирования по времени
      *
-     * @param bookingTime the time slot to check
-     * @return true if the ti,e slot is available, false otherwise
+     * @param dateTime the date time to check
+     * @return true if the booking time is available
      */
-    public boolean isBookingTimeAvailable(LocalDateTime bookingTime) {
-        int startHour = WorkspaceConfig.START_HOUR.getValue();
-        int endHour = WorkspaceConfig.END_HOUR.getValue();
-        DayOfWeek[] workDays = WorkspaceConfig.WORK_DAYS.getDays();
+    public boolean isBookingTimeAvailable(LocalDateTime dateTime) {
+        LocalDate date = dateTime.toLocalDate();
+        LocalTime time = dateTime.toLocalTime();
 
-        boolean isWorkingDay = false;
-        for (DayOfWeek day : workDays) {
-            if (day == bookingTime.getDayOfWeek()) {
-                isWorkingDay = true;
+        //Проверяем, совпадает ли дата с рабочими днями
+        String dayOfWeek = date.getDayOfWeek().name();
+        boolean isValidDay = false;
+
+        for (String validDay : WorkspaceConfig.WORK_DAYS.getDays()) {
+            if (validDay.equalsIgnoreCase(dayOfWeek)) {
+                isValidDay = true;
                 break;
             }
         }
 
-        LocalTime bookingLocalTime = bookingTime.toLocalTime();
-        return isWorkingDay &&
-                !bookingLocalTime.isBefore(LocalTime.of(startHour, 0)) &&
-                !bookingLocalTime.isAfter(LocalTime.of(endHour - 1, 59));
+        if (!isValidDay) {
+            return false;
+        }
+
+        //Проверяем, совпадает ли время с рабочим временем
+        int hour = time.getHour();
+        if (hour < WorkspaceConfig.START_HOUR.getValue() || hour >= WorkspaceConfig.END_HOUR.getValue()) {
+            return false;
+        }
+
+        //Проверяем, забронированы ли рабочие места в указанное время
+        for (Workspace workspace : workspaces) {
+            if (workspace.isBooked() && workspace.getBookingTime().equals(dateTime)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
-    //FIXME: don't forget to manage this one
     /**
      * Возвращаем лист доступных слотов бронирования по дате
      *
@@ -156,6 +170,17 @@ public class ConferenceRoom {
         return availableSlots;
     }
 
+    public boolean hasBooking(LocalDateTime date, String userId, boolean availableOnly) {
+        for (Workspace workspace : workspaces) {
+            if (workspace.isBooked() && workspace.getBookingTime().toLocalDate().isEqual(date.toLocalDate())) {
+                if (!availableOnly || (userId != null && workspace.getBookedBy().equals(userId))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /**
      * Метод для бронирования всего Конференц-зала
      *
@@ -167,7 +192,7 @@ public class ConferenceRoom {
             throw new IllegalStateException("Booking time not available");
         }
         for (Workspace workspace : workspaces) {
-            if (!workspace.isBooked()) {
+            if (!workspace.isBooked() && isBookingTimeAvailable(bookingTime)) {
                 workspace.book(userId, bookingTime);
             }
         }

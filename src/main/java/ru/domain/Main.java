@@ -41,6 +41,7 @@ public class Main {
                     "10. Book Conference Room\n" +
                     "11. Cancel Workspace Booking\n" +
                     "12. Cancel Conference Room Booking\n" +
+                    "13. Filter Bookings\n" +
                     "0. Exit"
             );
             String choice = input.readLine(); //Считываем введенный пользователем номер.
@@ -53,34 +54,37 @@ public class Main {
                     userInput.handleLoginUser();
                     break;
                 case "3":  //Создаем Конференц-зал
-                    conferenceRoomInput.handleCreateConferenceRoom();
+                    conferenceRoomInput.createConferenceRoom();
                     break;
                 case "4":  //Просматриваем доступные Конференц-залы и рабочие места
-                    conferenceRoomInput.handleViewConferenceRooms();
+                    conferenceRoomInput.viewConferenceRooms();
                     break;
                 case "5": //Обновляем конференц зал
-                    conferenceRoomInput.handleUpdateConferenceRoom();
+                    conferenceRoomInput.updateConferenceRoom();
                     break;
                 case "6": //Удаляем конференц зал
-                    conferenceRoomInput.handleDeleteConferenceRoom();
+                    conferenceRoomInput.deleteConferenceRoom();
                     break;
                 case "7"://Добавляем рабочие места
-                    conferenceRoomInput.handleAddWorkspace();
+                    conferenceRoomInput.addWorkspace();
                     break;
                 case "8": //Бронируем рабочие места
-                    conferenceRoomInput.handleBookWorkspace();
+                    conferenceRoomInput.bookWorkspace();
                     break;
                 case "9": //Просматриваем свободное время для записи на определенную дату
-                    conferenceRoomInput.handleViewAvailableSlots();
+                    conferenceRoomInput.viewAvailableSlots();
                     break;
                 case "10": //Бронируем целый Конференц-зал на определенные дату и время
-                    conferenceRoomInput.handleBookConferenceRoom();
+                    conferenceRoomInput.bookConferenceRoom();
                     break;
                 case "11":
-                    conferenceRoomInput.handleCancelWorkspaceBooking();
+                    conferenceRoomInput.cancelWorkspaceBooking();
                     break;
                 case "12":
-                    conferenceRoomInput.handleCancelConferenceRoomBooking();
+                    conferenceRoomInput.cancelConferenceRoomBooking();
+                    break;
+                case "13":
+                    conferenceRoomInput.filterBooking();
                     break;
                 case "0":  //Выход из консоли
                     output.println("Goodbye!");
