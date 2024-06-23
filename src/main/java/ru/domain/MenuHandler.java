@@ -77,13 +77,14 @@ public class MenuHandler {
                 case "10": //Бронируем целый Конференц-зал на определенные дату и время
                     conferenceRoomInput.bookConferenceRoom();
                     break;
-                case "11":
+                case "11": //Отменяем бронирование рабочего места.
                     conferenceRoomInput.cancelWorkspaceBooking();
                     break;
-                case "12":
+                case "12": //Отменяем бронирование Конференц-зала
                     conferenceRoomInput.cancelConferenceRoomBooking();
                     break;
-                case "13":
+                case "13": //Фильтруем Конференц-зал по Date, User, Available Workspaces
+                    //FIXME: filter realisation in progress.
                     conferenceRoomInput.filterBooking();
                     break;
                 case "0":  //Выход из консоли
