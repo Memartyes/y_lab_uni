@@ -1,11 +1,13 @@
 package ru.domain.io;
 
+import ru.domain.config.WorkspaceConfig;
 import ru.domain.managers.ConferenceRoomManager;
 import ru.domain.entities.ConferenceRoom;
 import ru.domain.entities.Workspace;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -172,15 +174,69 @@ public class ConsoleConferenceRoomInput {
         output.println("Enter Booking Time (yyyy-MM-dd HH:mm):");
         String bookingTimeInput = input.readLine();
 
+        LocalDateTime bookingTime;
         try {
-            LocalDateTime bookingTime = LocalDateTime.parse(bookingTimeInput, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+            bookingTime = LocalDateTime.parse(bookingTimeInput);
+        } catch (Exception e) {
+            output.println("Invalid date time format");
+            return;
+        }
+        try {
             conferenceRoomManager.bookAllWorkspaces(conferenceRoomId, userId, bookingTime);
-            output.println("Conference Room booked successfully.");
-        } catch (DateTimeParseException e) {
-            output.println("Error: Invalid date format. Please use 'yyyy-MM-dd HH:mm'.");
-        } catch (IllegalArgumentException | IllegalStateException e) {
+            output.println("Conference room booked successfully.");
+        } catch (IllegalArgumentException e) {
             output.println("Error: " + e.getMessage());
         }
+
+//        LocalDateTime bookingTime;
+//        try {
+//            bookingTime = LocalDateTime.parse(bookingTimeInput);
+//        } catch (Exception e) {
+//            output.println("Invalid date time format");
+//            return;
+//        }
+//        try {
+//            conferenceRoomManager.bookAllWorkspaces(conferenceRoomId, userId, bookingTime);
+//            output.println("Conference room booked successfully.");
+//        } catch (IllegalArgumentException e) {
+//            output.println("Error: " + e.getMessage());
+//        }
+    }
+
+    /**
+     * Метод для обработки запрооса на бронирования Конференц-зала на весь рабочий день.
+     */
+    public void bookConferenceRoomForWholeDay() {
+        output.println("Enter Conference Room ID:");
+        String conferenceRoomId = input.readLine();
+        output.println("Enter User ID:");
+        String userId = input.readLine();
+        output.println("Enter Date (yyyy-MM-dd:");
+        String dateStr = input.readLine();
+
+        LocalDate date;
+        try {
+            date = LocalDate.parse(dateStr);
+        } catch (Exception e) {
+            output.println("Invalid date format.");
+            return;
+        }
+
+        int startHour = WorkspaceConfig.START_HOUR.getValue();
+        int endHour = WorkspaceConfig.END_HOUR.getValue();
+        int bookingDuration = WorkspaceConfig.BOOKING_DURATION_HOURS.getValue();
+
+        LocalDateTime bookingTime = date.atTime(startHour, 0);
+        while (bookingTime.getHour() < endHour) {
+            try {
+                conferenceRoomManager.bookAllWorkspaces(conferenceRoomId, userId, bookingTime);
+                bookingTime = bookingTime.plusHours(bookingDuration);
+            } catch (IllegalArgumentException e) {
+                output.println("Error: " + e.getMessage());
+                return;
+            }
+        }
+        output.println("Conference room booked for the whole day successfully.");
     }
 
     /**

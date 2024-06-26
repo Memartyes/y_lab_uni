@@ -21,7 +21,12 @@ public class Main {
         ConsoleConferenceRoomInput conferenceRoomInput = new ConsoleConferenceRoomInput(input, output, conferenceRoomManager);
         ConsoleUserInput userInput = new ConsoleUserInput(input, output, userManager);
 
-        MenuHandler menuHandler = new MenuHandler(userInput, conferenceRoomInput);
-        menuHandler.displayMenu(); //Запуск меню приложения
+        MenuHandler menuHandler = new MenuHandler(userInput, conferenceRoomInput, output);
+
+        try {
+            menuHandler.showMainMenu(); // Запуск меню приложения
+        } finally {
+            input.close(); // Закрываем поток Scanner
+        }
     }
 }

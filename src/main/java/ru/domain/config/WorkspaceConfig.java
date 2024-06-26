@@ -1,8 +1,11 @@
 package ru.domain.config;
 
+import lombok.Getter;
+
 /**
  * Добавим ENUM для удобства быстрой смены максимального параметр вместимости рабочих мест в Конференц-зале
  */
+@Getter
 public enum WorkspaceConfig {
     BOOKING_DURATION_HOURS(1),
     WORKSPACES_CAPACITY(8),
@@ -29,11 +32,4 @@ public enum WorkspaceConfig {
         this.days = days;
     }
 
-    public int getValue() {
-        return value;
-    }
-
-    public String[] getDays() {
-        return days;
-    }
 }

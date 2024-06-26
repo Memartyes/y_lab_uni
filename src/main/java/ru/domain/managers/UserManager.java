@@ -1,5 +1,6 @@
 package ru.domain.managers;
 
+import lombok.Getter;
 import ru.domain.entities.User;
 
 import java.util.Map;
@@ -8,7 +9,14 @@ import java.util.HashMap;
 /**
  * Определяем класс для управления пользователями в системе, включая регистрацию и аутентификацию.
  */
+@Getter
 public class UserManager {
+    /**
+     * -- GETTER --
+     *  Возвращаем карту пользователей
+     *
+     * @return Map of users
+     */
     private Map<String, User> users;
 
     public UserManager() {
@@ -45,11 +53,4 @@ public class UserManager {
         return false;
     }
 
-    /**
-     * Возвращаем карту пользователей
-     * @return Map of users
-     */
-    public Map<String, User> getUsers() {
-        return users;
-    }
 }

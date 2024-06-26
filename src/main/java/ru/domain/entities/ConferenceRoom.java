@@ -1,5 +1,6 @@
 package ru.domain.entities;
 
+import lombok.Setter;
 import ru.domain.config.WorkspaceConfig;
 
 import java.time.LocalDate;
@@ -12,6 +13,11 @@ import java.time.LocalTime;
  * Определяем класс Конференц-зала который содержит рабочие места (Workspace).
  */
 public class ConferenceRoom {
+    /**
+     * -- SETTER --
+     *  Устанавливаем новое название для Конференц-зала
+     */
+    @Setter
     private String name;
     private List<Workspace> workspaces;
 
@@ -45,26 +51,13 @@ public class ConferenceRoom {
     }
 
     /**
-     * Устанавливаем новое название для Конференц-зала
-     * @param name the new conference room name
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
      * Получаем рабочее место по ID.
      *
      * @param workspaceId the workspace ID
      * @return the workspace with the workspaceId, or null if not found
      */
     public Workspace getWorkspace(String workspaceId) {
-        for (Workspace workspace : workspaces) {
-            if (workspace.getId().equals(workspaceId)) {
-                return workspace;
-            }
-        }
-        return null;
+        return workspaces.stream().filter(workspace -> workspace.getId().equals(workspaceId)).findFirst().orElse(null);
     }
 
     /**
@@ -83,9 +76,16 @@ public class ConferenceRoom {
      * @throws IllegalStateException if the workspace limit is reached
      */
     public void addWorkspace(Workspace workspace) {
-        if (workspaces.size() >= WorkspaceConfig.WORKSPACES_CAPACITY.getValue()) {
-            throw new IllegalStateException("Workspace limit reached");
+//        if (workspaces.size() >= WorkspaceConfig.WORKSPACES_CAPACITY.getValue()) {
+//            throw new IllegalStateException("Workspace limit reached");
+//        }
+
+        for (Workspace ws : workspaces) {
+            if (ws.getId().equals(workspace.getId())) {
+                throw new IllegalArgumentException("Workspace already exists");
+            }
         }
+
         this.workspaces.add(workspace);
     }
 
@@ -171,26 +171,21 @@ public class ConferenceRoom {
         return availableSlots;
     }
 
-    public boolean hasBooking(LocalDateTime date, String userId, boolean availableOnly) {
-        if (date == null) {
-            throw new IllegalArgumentException("Date cannot be null");
-        }
-
-        for (Workspace workspace : workspaces) {
-            if (workspace.isBooked() && workspace.getBookingTime().toLocalDate().isEqual(date.toLocalDate())) {
-                if (!availableOnly || (userId != null && workspace.getBookedBy().equals(userId))) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
+    /**
+     * Проверяем есть ли забронированные места на указанную дату
+     * @param date the date
+     * @return true if workspaces are booked on current date, false otherwise
+     */
     public boolean hasBookingOnDate(LocalDate date) {
         return workspaces.stream()
                 .anyMatch(ws -> ws.isBooked() && ws.getBookingTime().toLocalDate().isEqual(date));
     }
 
+    /**
+     * Проверяем бронировал ли пользователь рабочие места
+     * @param userId the user ID
+     * @return true if the user booked a workspace, false otherwise
+     */
     public boolean hasBookingByUser(String userId) {
         return workspaces.stream()
                 .anyMatch(ws -> ws.isBooked() && ws.getBookedBy().equals(userId));
@@ -207,9 +202,6 @@ public class ConferenceRoom {
      * @param bookingTime the booking time
      */
     public void bookAllWorkspaces(String userId, LocalDateTime bookingTime) {
-        if (!isBookingTimeAvailable(bookingTime)) {
-            throw new IllegalStateException("Booking time not available");
-        }
         for (Workspace workspace : workspaces) {
             if (!workspace.isBooked() && isBookingTimeAvailable(bookingTime)) {
                 workspace.book(userId, bookingTime);

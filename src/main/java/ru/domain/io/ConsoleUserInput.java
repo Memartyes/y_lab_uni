@@ -16,6 +16,9 @@ public class ConsoleUserInput {
         this.userManager = userManager;
     }
 
+    /**
+     * Обрабатываем запрос на регистрацию нового пользователя
+     */
     public void handleRegisterUser() {
         output.println("Enter IO:");
         String userId = input.readLine();
@@ -30,6 +33,9 @@ public class ConsoleUserInput {
         }
     }
 
+    /**
+     * Обрабатываем запрос на авторизацию пользователя
+     */
     public void handleLoginUser() {
         output.println("Enter IO:");
         String id = input.readLine();
@@ -42,5 +48,9 @@ public class ConsoleUserInput {
         } else {
             output.println("Login failed");
         }
+    }
+
+    public String readLine() {
+        return input.readLine();
     }
 }

@@ -1,8 +1,11 @@
 package ru.domain.config;
 
+import lombok.Getter;
+
 /**
  * Enum для определения Конференц-залов по умолчанию
  */
+@Getter
 public enum DefaultConferenceRooms {
     MATHEMATICS("Mathematics"),
     HISTORY("History"),
@@ -16,7 +19,4 @@ public enum DefaultConferenceRooms {
         this.name = name;
     }
 
-    public String getName() {
-        return name;
-    }
 }

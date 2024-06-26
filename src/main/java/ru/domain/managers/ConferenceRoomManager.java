@@ -1,5 +1,6 @@
 package ru.domain.managers;
 
+import lombok.Getter;
 import ru.domain.entities.ConferenceRoom;
 import ru.domain.config.DefaultConferenceRooms;
 import ru.domain.entities.Workspace;
@@ -15,7 +16,14 @@ import java.util.stream.Collectors;
 /**
  * Определим класс для управления Конференц-залами и рабочими местами.
  */
+@Getter
 public class ConferenceRoomManager {
+    /**
+     * -- GETTER --
+     *  Возвращаем репозиторий Конференц-зал'ов
+     *
+     * @return the conference room repository
+     */
     private Map<String, ConferenceRoom> conferenceRoomRepository;
 
     /**
@@ -137,15 +145,6 @@ public class ConferenceRoomManager {
     }
 
     /**
-     * Возвращаем репозиторий Конференц-зал'ов
-     *
-     * @return the conference room repository
-     */
-    public Map<String, ConferenceRoom> getConferenceRoomRepository() {
-        return conferenceRoomRepository;
-    }
-
-    /**
      * Возвращаем доступные слоты рабочих мест в Конференц-зале
      *
      * @param conferenceRoomId the conference room ID
@@ -187,6 +186,11 @@ public class ConferenceRoomManager {
         conferenceRoom.cancelBookingForAllWorkspaces();
     }
 
+    /**
+     * Метод фильтрует бронирования Конференц-залов по дате
+     * @param date the date
+     * @return the list of conference rooms that has booked workspaces on current date
+     */
     public List<String> filterByDate(LocalDate date) {
         List<String> results = new ArrayList<>();
         for (ConferenceRoom room : conferenceRoomRepository.values()) {
@@ -197,6 +201,11 @@ public class ConferenceRoomManager {
         return results;
     }
 
+    /**
+     * Метод фильтрует бронирования Конференц-залов по пользователю
+     * @param userId the user ID
+     * @return the list of conference rooms that has booked by current user
+     */
     public List<String> filterByUser(String userId) {
         List<String> results = new ArrayList<>();
         for (ConferenceRoom room : conferenceRoomRepository.values()) {
@@ -207,6 +216,10 @@ public class ConferenceRoomManager {
         return results;
     }
 
+    /**
+     * Метод фильтрующий Конференц-залы с доступными рабочими местами для бронирования
+     * @return the list of conference rooms available for book
+     */
     public List<String> filterByAvailableWorkspaces() {
         return conferenceRoomRepository.values().stream()
                 .filter(ConferenceRoom::hasAvailableWorkspaces)

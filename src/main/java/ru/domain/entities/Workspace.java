@@ -1,5 +1,6 @@
 package ru.domain.entities;
 
+import lombok.Getter;
 import ru.domain.config.WorkspaceConfig;
 
 import java.time.LocalDateTime;
@@ -8,10 +9,35 @@ import java.time.format.DateTimeFormatter;
 /**
  * Определяем класс для определения рабочих мест в Конференц-залах
  */
+@Getter
 public class Workspace {
+    /**
+     * -- GETTER --
+     *  Возвращаем ID рабочего места.
+     *
+     * @return the workspace ID
+     */
     private String id;
+    /**
+     * -- GETTER --
+     *  Проверяем, забронировано ли рабочее место
+     *
+     * @return true if workspace is booked, false otherwise
+     */
     private boolean booked;
+    /**
+     * -- GETTER --
+     *  Возвращаем ID пользователя забронировавшего рабочее место
+     *
+     * @return the user's ID who booked the workspace, or null if not booked
+     */
     private String bookedBy;
+    /**
+     * -- GETTER --
+     *  Возвращаем забронированное время
+     *
+     * @return the booking time
+     */
     private LocalDateTime bookingTime;
 
     /**
@@ -23,24 +49,6 @@ public class Workspace {
         this.booked = false;
         this.bookedBy = null; //изначально, рабочее место изначально никем не забронировано
         this.bookingTime = null; //изначально, рабочее место не забронировано ни на какое время
-    }
-
-    /**
-     * Возвращаем ID рабочего места.
-     *
-     * @return the workspace ID
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * Проверяем, забронировано ли рабочее место
-     *
-     * @return true if workspace is booked, false otherwise
-     */
-    public boolean isBooked() {
-        return booked;
     }
 
     /**
@@ -62,24 +70,6 @@ public class Workspace {
         this.booked = false;
         this.bookedBy = null;
         this.bookingTime = null;
-    }
-
-    /**
-     * Возвращаем ID пользователя забронировавшего рабочее место
-     *
-     * @return the user's ID who booked the workspace, or null if not booked
-     */
-    public String getBookedBy() {
-        return bookedBy;
-    }
-
-    /**
-     * Возвращаем забронированное время
-     *
-     * @return the booking time
-     */
-    public LocalDateTime getBookingTime() {
-        return bookingTime;
     }
 
     /**
