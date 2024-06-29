@@ -12,6 +12,10 @@ import java.util.List;
 
 public class ConferenceRoomRepository {
 
+    /**
+     * for testing process
+     * @param args
+     */
     public static void main(String[] args) {
         try (Connection connection = DatabaseUtil.getConnection()) {
             ConferenceRoomRepository conferenceRoomRepository = new ConferenceRoomRepository();
