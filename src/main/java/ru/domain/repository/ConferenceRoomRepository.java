@@ -48,7 +48,7 @@ public class ConferenceRoomRepository {
      * @param conferenceRoom the conference room
      */
     public void addConferenceRoom(ConferenceRoom conferenceRoom) {
-        String sql = "INSERT INTO \"conference_rooms-liquibase\" (name, capacity) VALUES (?, ?)";
+        String sql = "INSERT INTO coworking_app.\"conference_rooms-liquibase\" (name, capacity) VALUES (?, ?)";
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, conferenceRoom.getName());
@@ -75,7 +75,7 @@ public class ConferenceRoomRepository {
      */
     public List<ConferenceRoom> findAllConferenceRooms() {
         List<ConferenceRoom> conferenceRooms = new ArrayList<>();
-        String sql = "SELECT id, name, capacity FROM \"conference_rooms-liquibase\"";
+        String sql = "SELECT id, name, capacity FROM coworking_app.\"conference_rooms-liquibase\"";
         try (Connection connection = DatabaseUtil.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -101,7 +101,7 @@ public class ConferenceRoomRepository {
      * @param conferenceRoom
      */
     public void updateConferenceRoom(ConferenceRoom conferenceRoom) {
-        String sql = "UPDATE \"conference_rooms-liquibase\" SET name = ?, capacity = ? WHERE id = ?";
+        String sql = "UPDATE coworking_app.\"conference_rooms-liquibase\" SET name = ?, capacity = ? WHERE id = ?";
         try (Connection connection = DatabaseUtil.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, conferenceRoom.getName());
@@ -122,7 +122,7 @@ public class ConferenceRoomRepository {
      * @param id the conference room ID
      */
     public void deleteConferenceRoom(int id) {
-        String sql = "DELETE FROM \"conference_rooms-liquibase\" WHERE id = ?";
+        String sql = "DELETE FROM coworking_app.\"conference_rooms-liquibase\" WHERE id = ?";
         try (Connection connection = DatabaseUtil.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setInt(1, id);

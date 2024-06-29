@@ -6,6 +6,13 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
         logicalFilePath="db/changelog/changelog.xml">
+
+        <changeSet id="001-create-schema" author="Memartyes">
+                <sql dbms="postgresql">
+                        CREATE SCHEMA IF NOT EXISTS coworking_app AUTHORIZATION postgres;
+                </sql>
+        </changeSet>
+
         <include file="000-create-sequences.xml" relativeToChangelogFile="true"/>
         <include file="001-create-table.xml" relativeToChangelogFile="true"/>
         <include file="002-insert-data.xml" relativeToChangelogFile="true"/>
