@@ -55,7 +55,7 @@ public class UserRepository {
      * @param user the user to save
      */
     public void saveUser(User user) {
-        String sql = "INSERT INTO coworking_app.\"users-liquibase\" (name, email, password) VALUES (?, ?, ?) RETURNING id";
+        String sql = "INSERT INTO coworking.\"users-liquibase\" (name, email, password) VALUES (?, ?, ?) RETURNING id";
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -84,7 +84,7 @@ public class UserRepository {
      */
     public List<User> findAllUsers() {
         List<User> users = new ArrayList<>();
-        String sql = "SELECT id, name, email, password FROM coworking_app.\"users-liquibase\"";
+        String sql = "SELECT id, name, email, password FROM coworking.\"users-liquibase\"";
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet resultSet = statement.executeQuery()) {
@@ -114,7 +114,7 @@ public class UserRepository {
      * @throws SQLException SQLException
      */
     public Optional<User> findByUsername(String userName) throws SQLException {
-        String sql = "SELECT id, name, email, password FROM coworking_app.\"users-liquibase\" WHERE name = ?";
+        String sql = "SELECT id, name, email, password FROM coworking.\"users-liquibase\" WHERE name = ?";
         try (Connection connection = DatabaseUtil.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, userName);
@@ -145,7 +145,7 @@ public class UserRepository {
      * @param user the user
      */
     public void updateUser(User user) {
-        String sql = "UPDATE coworking_app.\"users-liquibase\" SET name = ?, email = ?, password = ? WHERE id = ?";
+        String sql = "UPDATE coworking.\"users-liquibase\" SET name = ?, email = ?, password = ? WHERE id = ?";
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, user.getName());
@@ -167,7 +167,7 @@ public class UserRepository {
      * @param userId the user's ID
      */
     public void deleteUser(int userId) {
-        String sql = "DELETE FROM coworking_app.\"users-liquibase\" WHERE id = ?";
+        String sql = "DELETE FROM coworking.\"users-liquibase\" WHERE id = ?";
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setInt(1, userId);

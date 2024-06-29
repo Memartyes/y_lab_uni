@@ -50,7 +50,7 @@ public class WorkspaceRepository {
      * @param workspace the workspace
      */
     public void addWorkspace(Workspace workspace) {
-        String sql = "INSERT INTO coworking_app.\"workspaces-liquibase\" (name, \"bookedBy\", \"bookingTime\") VALUES (?, ?, ?)";
+        String sql = "INSERT INTO coworking.\"workspaces-liquibase\" (name, \"bookedBy\", \"bookingTime\") VALUES (?, ?, ?)";
 
         try (Connection connection = DatabaseUtil.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -79,7 +79,7 @@ public class WorkspaceRepository {
      */
     public List<Workspace> findAllWorkspaces() {
         List<Workspace> workspaces = new ArrayList<>();
-        String sql = "SELECT id, name, \"bookedBy\", \"bookingTime\" FROM coworking_app.\"workspaces-liquibase\"";
+        String sql = "SELECT id, name, \"bookedBy\", \"bookingTime\" FROM coworking.\"workspaces-liquibase\"";
 
         try (Connection connection = DatabaseUtil.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql);
@@ -103,7 +103,7 @@ public class WorkspaceRepository {
      * @param workspace the updated values in workspace
      */
     public void updateWorkspace(Workspace workspace) {
-        String sql = "UPDATE coworking_app.\"workspaces-liquibase\" SET name = ?, \"bookedBy\" = ?, \"bookingTime\" = ? WHERE id = ?";
+        String sql = "UPDATE coworking.\"workspaces-liquibase\" SET name = ?, \"bookedBy\" = ?, \"bookingTime\" = ? WHERE id = ?";
         try (Connection connection = DatabaseUtil.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, workspace.getName());
@@ -125,7 +125,7 @@ public class WorkspaceRepository {
      * @param id the workspace ID
      */
     public void deleteWorkspace(int id) {
-        String sql = "DELETE FROM coworking_app.\"workspaces-liquibase\" WHERE id = ?";
+        String sql = "DELETE FROM coworking.\"workspaces-liquibase\" WHERE id = ?";
         try (Connection connection = DatabaseUtil.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setInt(1, id);
