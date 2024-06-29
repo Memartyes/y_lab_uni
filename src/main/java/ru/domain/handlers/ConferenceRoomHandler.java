@@ -80,7 +80,7 @@ public class ConferenceRoomHandler {
         String newRoomId = conferenceRoomInput.readRoomId();
 
         try {
-            conferenceRoomManager.updateConferenceRoom(oldRoomId, newRoomId);
+            conferenceRoomManager.updateConferenceRoomName(oldRoomId, newRoomId);
             conferenceRoomOutput.printMessage("Conference Room updated successfully.");
         } catch (IllegalArgumentException e) {
             conferenceRoomOutput.printMessage("Error: " + e.getMessage());

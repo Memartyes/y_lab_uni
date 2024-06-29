@@ -16,10 +16,6 @@ import java.util.stream.Collectors;
  */
 @Getter
 public class ConferenceRoomManager {
-    /**
-     * -- GETTER --
-     *  Возвращаем репозиторий Конференц-зал'ов
-     */
     private Map<String, ConferenceRoom> conferenceRooms;
 
     /**
@@ -35,7 +31,7 @@ public class ConferenceRoomManager {
      */
     public void initializeConferenceRooms() {
         for (DefaultConferenceRooms room : DefaultConferenceRooms.values()) {
-            addConferenceRoom(room.getName());
+            this.conferenceRooms.put(room.getName(), new ConferenceRoom(room.getName()));
         }
     }
 
@@ -55,42 +51,45 @@ public class ConferenceRoomManager {
     /**
      * Вносим изменение в ID уже существующего Конференц-зала
      *
-     * @param oldId the old conference room ID
-     * @param newId the new conference room ID
+     * @param oldRoomName the old conference room ID
+     * @param newRoomName the new conference room ID
      */
-    public void updateConferenceRoom(String oldId, String newId) {
-        if (!conferenceRooms.containsKey(oldId)) {
-            throw new IllegalArgumentException("Conference room with id " + oldId + " not found.");
+    public void updateConferenceRoomName(String oldRoomName, String newRoomName) {
+        if (!conferenceRooms.containsKey(oldRoomName)) {
+            throw new IllegalArgumentException("Conference room with name " + oldRoomName + " not found.");
         }
-        if (conferenceRooms.containsKey(newId)) {
-            throw new IllegalArgumentException("Conference room with id " + newId + " already exists.");
+        if (conferenceRooms.containsKey(newRoomName)) {
+            throw new IllegalArgumentException("Conference room with name " + newRoomName + " already exists.");
         }
 
-        ConferenceRoom conferenceRoom = conferenceRooms.remove(oldId);
-        conferenceRoom.setName(newId);
-        conferenceRooms.put(newId, conferenceRoom);
+        ConferenceRoom conferenceRoom = conferenceRooms.remove(oldRoomName);
+        conferenceRoom.setName(newRoomName);
+        conferenceRooms.put(newRoomName, conferenceRoom);
     }
 
     /**
-     * Удаляем уже существующий Конференц-зал
+     * Удаляем уже существующий Конференц-зал по его имени
      *
-     * @param id the conference room ID
+     * @param roomName the conference room roomName
      */
-    public void deleteConferenceRoom(String id) {
-        if (!conferenceRooms.containsKey(id)) {
-            throw new IllegalArgumentException("Conference room with id " + id + " not found.");
+    public void deleteConferenceRoom(String roomName) {
+        if (!conferenceRooms.containsKey(roomName)) {
+            throw new IllegalArgumentException("Conference room with roomName " + roomName + " not found.");
         }
-        conferenceRooms.remove(id);
+        conferenceRooms.remove(roomName);
     }
 
     /**
      * Возвращаем Конференц-зал по запрошенному ID
      *
-     * @param roomId the conference room ID
+     * @param roomName the conference room ID
      * @return conference room by ID
      */
-    public ConferenceRoom getConferenceRoom(String roomId) {
-        return conferenceRooms.get(roomId);
+    public ConferenceRoom getConferenceRoom(String roomName) {
+        if (!conferenceRooms.containsKey(roomName)) {
+            throw new IllegalArgumentException("Conference room with name " + roomName + " not found.");
+        }
+        return conferenceRooms.get(roomName);
     }
 
     /**
@@ -101,11 +100,11 @@ public class ConferenceRoomManager {
      * @return the list of available slots in conference room
      */
     public List<String> getAvailableSlots(String conferenceRoomId, LocalDate date) {
-        ConferenceRoom conferenceRoom = conferenceRooms.get(conferenceRoomId);
-        if (conferenceRoom == null) {
+        ConferenceRoom room = getConferenceRoom(conferenceRoomId);
+        if (room == null) {
             throw new IllegalArgumentException("Conference room with id " + conferenceRoomId + " not found.");
         }
-        return conferenceRoom.getAvailableSlots(date.atStartOfDay());
+        return room.getBookingManager().getAvailableSlots(date.atStartOfDay());
     }
 
     /**
