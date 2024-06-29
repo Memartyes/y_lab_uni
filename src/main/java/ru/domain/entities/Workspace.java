@@ -1,6 +1,7 @@
 package ru.domain.entities;
 
 import lombok.Getter;
+import lombok.Setter;
 import ru.domain.config.WorkspaceConfig;
 
 import java.time.LocalDateTime;
@@ -9,57 +10,45 @@ import java.time.format.DateTimeFormatter;
 /**
  * Определяем класс для определения рабочих мест в Конференц-залах
  */
-@Getter
 public class Workspace {
-    /**
-     * -- GETTER --
-     *  Возвращаем ID рабочего места.
-     *
-     * @return the workspace ID
-     */
-    private String id;
-    /**
-     * -- GETTER --
-     *  Проверяем, забронировано ли рабочее место
-     *
-     * @return true if workspace is booked, false otherwise
-     */
+    @Getter
+    @Setter
+    private String name;
+    @Setter
+    @Getter
     private boolean booked;
-    /**
-     * -- GETTER --
-     *  Возвращаем ID пользователя забронировавшего рабочее место
-     *
-     * @return the user's ID who booked the workspace, or null if not booked
-     */
+    @Setter
+    @Getter
     private String bookedBy;
-    /**
-     * -- GETTER --
-     *  Возвращаем забронированное время
-     *
-     * @return the booking time
-     */
+    @Setter
+    @Getter
     private LocalDateTime bookingTime;
+    @Getter
+    @Setter
+    private int id;
 
     /**
      * Конструктор для создания нового рабочего места.
-     * @param id the workspace ID;
+     * @param name the workspace name;
      */
-    public Workspace(String id) {
-        this.id = id;
+    public Workspace(String name) {
+        this.name = name;
         this.booked = false;
         this.bookedBy = null; //изначально, рабочее место изначально никем не забронировано
         this.bookingTime = null; //изначально, рабочее место не забронировано ни на какое время
     }
 
+    public Workspace() {}
+
     /**
      * Бронируем рабочее место
      *
-     * @param userId the user's ID who books the workspace
+     * @param userName the user's name who books the workspace
      * @param bookingTime the booking time
      */
-    public void book(String userId, LocalDateTime bookingTime) {
+    public void book(String userName, LocalDateTime bookingTime) {
         this.booked = true;
-        this.bookedBy = userId;
+        this.bookedBy = userName;
         this.bookingTime = bookingTime;
     }
 

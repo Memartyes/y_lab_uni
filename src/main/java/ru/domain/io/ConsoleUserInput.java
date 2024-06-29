@@ -1,56 +1,40 @@
 package ru.domain.io;
 
-import ru.domain.managers.UserManager;
-
 /**
- * Обрабатываем консольный ввод для пользовательских операций
+ * Класс для обработки ввода пользователя через консоль
  */
 public class ConsoleUserInput {
-    private ConsoleInput input;
-    private ConsoleOutput output;
-    private UserManager userManager;
+    private final ConsoleInput input;
+    private final ConsoleOutput output;
 
-    public ConsoleUserInput(ConsoleInput input, ConsoleOutput output, UserManager userManager) {
+    public ConsoleUserInput(ConsoleInput input, ConsoleOutput output) {
         this.input = input;
         this.output = output;
-        this.userManager = userManager;
     }
 
     /**
-     * Обрабатываем запрос на регистрацию нового пользователя
+     * Считываем ввод пользователя с консоли
+     *
+     * @return user's input
      */
-    public void handleRegisterUser() {
-        output.println("Enter IO:");
-        String userId = input.readLine();
-        output.println("Enter Password:");
-        String userPassword = input.readLine();
-
-        try {
-            userManager.registerUser(userId, userPassword);
-            output.println("User registered successfully: ");
-        } catch (IllegalArgumentException e) {
-            output.println("Error: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Обрабатываем запрос на авторизацию пользователя
-     */
-    public void handleLoginUser() {
-        output.println("Enter IO:");
-        String id = input.readLine();
-        output.println("Enter Password:");
-        String password = input.readLine();
-
-        boolean loggedIn = userManager.loginUser(id, password);
-        if (loggedIn) {
-            output.println("Logged in successfully");
-        } else {
-            output.println("Login failed");
-        }
-    }
-
     public String readLine() {
         return input.readLine();
+    }
+
+    public String readLine(String prompt) {
+        output.println(prompt);
+        return input.readLine();
+    }
+
+    public int readInt(String prompt) {
+        output.println(prompt);
+        return input.readInt();
+    }
+
+    /**
+     * Закрываем поток Scanner.
+     */
+    public void close() {
+        input.close();
     }
 }

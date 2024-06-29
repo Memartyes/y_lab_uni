@@ -1,11 +1,11 @@
 package ru.domain.commands;
 
-import ru.domain.io.ConsoleUserInput;
+import ru.domain.handlers.UserHandler;
 
 public class LoginUserCommand implements Command {
-    private final ConsoleUserInput userInput;
+    private final UserHandler userInput;
 
-    public LoginUserCommand(ConsoleUserInput userInput) {
+    public LoginUserCommand(UserHandler userInput) {
         this.userInput = userInput;
     }
 

@@ -1,17 +1,17 @@
 package ru.domain.commands;
 
-import ru.domain.io.ConsoleConferenceRoomInput;
-import ru.domain.io.ConsoleUserInput;
+import ru.domain.handlers.ConferenceRoomHandler;
+import ru.domain.handlers.WorkspaceHandler;
 
 public class AddWorkspaceCommand implements Command {
-    private ConsoleConferenceRoomInput conferenceRoomInput;
+    private WorkspaceHandler workspaceHandler;
 
-    public AddWorkspaceCommand(ConsoleConferenceRoomInput conferenceRoomInput) {
-        this.conferenceRoomInput = conferenceRoomInput;
+    public AddWorkspaceCommand(WorkspaceHandler workspaceHandler) {
+        this.workspaceHandler = workspaceHandler;
     }
 
     @Override
     public void execute() {
-        conferenceRoomInput.addWorkspace();
+        workspaceHandler.handleAddWorkspace();
     }
 }

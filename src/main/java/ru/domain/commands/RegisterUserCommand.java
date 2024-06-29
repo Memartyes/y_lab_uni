@@ -1,11 +1,11 @@
 package ru.domain.commands;
 
-import ru.domain.io.ConsoleUserInput;
+import ru.domain.handlers.UserHandler;
 
 public class RegisterUserCommand implements Command {
-    private ConsoleUserInput userInput;
+    private UserHandler userInput;
 
-    public RegisterUserCommand(ConsoleUserInput userInput) {
+    public RegisterUserCommand(UserHandler userInput) {
         this.userInput = userInput;
     }
 

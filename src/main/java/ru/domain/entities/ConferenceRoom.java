@@ -1,5 +1,6 @@
 package ru.domain.entities;
 
+import lombok.Getter;
 import lombok.Setter;
 import ru.domain.config.WorkspaceConfig;
 
@@ -13,13 +14,16 @@ import java.time.LocalTime;
  * Определяем класс Конференц-зала который содержит рабочие места (Workspace).
  */
 public class ConferenceRoom {
-    /**
-     * -- SETTER --
-     *  Устанавливаем новое название для Конференц-зала
-     */
     @Setter
+    @Getter
     private String name;
     private List<Workspace> workspaces;
+    @Setter
+    @Getter
+    private int id;
+    @Getter
+    @Setter
+    private int capacity;
 
     /**
      * Создаем новый Конференц-зал.
@@ -30,6 +34,11 @@ public class ConferenceRoom {
         this.name = name;
         this.workspaces = new ArrayList<>();
         initializeWorkspace();
+        capacity = WorkspaceConfig.WORKSPACES_CAPACITY.getValue();
+    }
+
+    public ConferenceRoom() {
+        capacity = WorkspaceConfig.WORKSPACES_CAPACITY.getValue();
     }
 
     /**
@@ -57,7 +66,7 @@ public class ConferenceRoom {
      * @return the workspace with the workspaceId, or null if not found
      */
     public Workspace getWorkspace(String workspaceId) {
-        return workspaces.stream().filter(workspace -> workspace.getId().equals(workspaceId)).findFirst().orElse(null);
+        return workspaces.stream().filter(workspace -> workspace.getName().equals(workspaceId)).findFirst().orElse(null);
     }
 
     /**
@@ -81,7 +90,7 @@ public class ConferenceRoom {
 //        }
 
         for (Workspace ws : workspaces) {
-            if (ws.getId().equals(workspace.getId())) {
+            if (ws.getName().equals(workspace.getName())) {
                 throw new IllegalArgumentException("Workspace already exists");
             }
         }

@@ -1,16 +1,16 @@
 package ru.domain.commands;
 
-import ru.domain.io.ConsoleConferenceRoomInput;
+import ru.domain.handlers.ConferenceRoomHandler;
 
 public class CancelWorkspaceBookingCommand implements Command {
-    private ConsoleConferenceRoomInput conferenceRoomInput;
+    private ConferenceRoomHandler conferenceRoomInput;
 
-    public CancelWorkspaceBookingCommand(ConsoleConferenceRoomInput conferenceRoomInput) {
+    public CancelWorkspaceBookingCommand(ConferenceRoomHandler conferenceRoomInput) {
         this.conferenceRoomInput = conferenceRoomInput;
     }
 
     @Override
     public void execute() {
-        conferenceRoomInput.cancelWorkspaceBooking();
+        conferenceRoomInput.handleCancelWorkspaceBooking();
     }
 }

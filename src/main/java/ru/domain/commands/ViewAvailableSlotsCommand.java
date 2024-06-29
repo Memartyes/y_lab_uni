@@ -1,16 +1,16 @@
 package ru.domain.commands;
 
-import ru.domain.io.ConsoleConferenceRoomInput;
+import ru.domain.handlers.ConferenceRoomHandler;
 
 public class ViewAvailableSlotsCommand implements Command {
-    private ConsoleConferenceRoomInput conferenceRoomInput;
+    private ConferenceRoomHandler conferenceRoomInput;
 
-    public ViewAvailableSlotsCommand(ConsoleConferenceRoomInput conferenceRoomInput) {
+    public ViewAvailableSlotsCommand(ConferenceRoomHandler conferenceRoomInput) {
         this.conferenceRoomInput = conferenceRoomInput;
     }
 
     @Override
     public void execute() {
-        conferenceRoomInput.viewAvailableSlots();
+        conferenceRoomInput.handleViewAvailableSlots();
     }
 }
