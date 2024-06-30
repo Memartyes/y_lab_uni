@@ -1,14 +1,14 @@
 Главный метод Main для запуска приложения расположен по пути: src/main/java/ru/domain/Main.java
 -
 
+
 Новые package для работы с базами данных расположены по следующему пути:
 -
-- src\main\java\ru\domain\repository;
-- src\main\java\ru\domain\util;
-- src\main\resources;
+- src/main/java/ru/domain/repository;
+- src/main/java/ru/domain/util;
+- src/main/resources;
+- src/test/java/ru/domain/repository;
 
-Второе задание стараюсь выполнить как можно быстрее.
--
 
 По поводу указаний на ошибки в первом задании:
 -
