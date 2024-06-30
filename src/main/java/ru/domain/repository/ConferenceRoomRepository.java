@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class ConferenceRoomRepository {
 
@@ -66,6 +67,33 @@ public class ConferenceRoomRepository {
             e.printStackTrace();
             System.out.println("SQLException in adding conference rooms; " + e.getMessage());
         }
+    }
+
+    /**
+     * Возвращаем конференц-зал по его названию.
+     *
+     * @param name the conference room name
+     * @return the conference room, null otherwise
+     */
+    public Optional<ConferenceRoom> findConferenceRoomByName(String name) {
+        String sql = "SELECT id, name, capacity FROM coworking.\"conference_room-liquibase\" WHERE name = ?";
+        try (Connection connection = DatabaseUtil.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, name);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    ConferenceRoom conferenceRoom = new ConferenceRoom();
+                    conferenceRoom.setId(resultSet.getInt("id"));
+                    conferenceRoom.setName(resultSet.getString("name"));
+                    conferenceRoom.setCapacity(resultSet.getInt("capacity"));
+                    return Optional.of(conferenceRoom);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("SQLException in findConferenceRoomByName; " + e.getMessage());
+        }
+        return Optional.empty();
     }
 
     /**

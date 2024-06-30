@@ -6,9 +6,22 @@ import java.sql.*;
  * Ютилити класс для управления database connection
  */
 public class DatabaseUtil {
-    private static final String URL = ConfigUtil.getProperty("database.url");
-    private static final String USER = ConfigUtil.getProperty("database.username");
-    private static final String PASSWORD = ConfigUtil.getProperty("database.password");
+    private static String URL = ConfigUtil.getProperty("database.url");
+    private static String USER = ConfigUtil.getProperty("database.username");
+    private static String PASSWORD = ConfigUtil.getProperty("database.password");
+
+    // Сеттеры для работы с тестконтейнерами
+    public static void setUrl(String newUrl) {
+        URL = newUrl;
+    }
+
+    public static void setUser(String newUser) {
+        USER = newUser;
+    }
+
+    public static void setPassword(String newPassword) {
+        PASSWORD = newPassword;
+    }
 
     /**
      * Возврашает connection для database

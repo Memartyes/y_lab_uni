@@ -7,6 +7,7 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Репозиторий для управления рабочими местами.
@@ -70,6 +71,34 @@ public class WorkspaceRepository {
             e.printStackTrace();
             System.out.println("SQLException in adding workspaces; " + e.getMessage());
         }
+    }
+
+    /**
+     * Возвращает рабочее место по его названию.
+     *
+     * @param name the workspace name
+     * @return found workspace, null otherwise
+     */
+    public Optional<Workspace> findWorkspaceByName(String name) {
+        String sql = "SELECT id, name, bookedBy, bookingTime FROM coworking.\"workspaces-liquibase\" WHERE name = ?";
+        try (Connection connection = DatabaseUtil.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, name);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    Workspace workspace = new Workspace();
+                    workspace.setId(resultSet.getInt("id"));
+                    workspace.setName(resultSet.getString("name"));
+                    workspace.setBookedBy(resultSet.getString("bookedBy"));
+                    workspace.setBookingTime(resultSet.getTimestamp("bookingTime").toLocalDateTime());
+                    return Optional.of(workspace);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("SQLException in finding workspace; " + e.getMessage());
+        }
+        return Optional.empty();
     }
 
     /**
