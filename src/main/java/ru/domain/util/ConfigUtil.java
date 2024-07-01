@@ -1,5 +1,8 @@
 package ru.domain.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -8,6 +11,7 @@ import java.util.Properties;
  * Ютилити класс для загрузки конфигурации application.properties.
  */
 public class ConfigUtil {
+    private static final Logger logger = LoggerFactory.getLogger(ConfigUtil.class);
     private static Properties properties = new Properties();
 
     // Статический блок для ранней статической инициализации считывания файла application.properties.
@@ -17,9 +21,10 @@ public class ConfigUtil {
                 throw new IOException("Unable to find application.properties");
             }
             properties.load(inputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new ExceptionInInitializerError(e);
+        } catch (Exception e) {
+//            e.printStackTrace();
+//            throw new ExceptionInInitializerError(e);
+            logger.error("Failed to load configuration properties.", e);
         }
     }
 

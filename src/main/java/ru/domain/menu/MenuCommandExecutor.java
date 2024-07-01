@@ -22,7 +22,7 @@ public class MenuCommandExecutor {
     /**
      * Инициализирует команды
      */
-    public void initializeCommands(UserHandler userHandler, ConferenceRoomHandler conferenceRoomInput, WorkspaceHandler workspaceHandler) {
+    private void initializeCommands(UserHandler userHandler, ConferenceRoomHandler conferenceRoomInput, WorkspaceHandler workspaceHandler) {
         commandMap.put("1", new RegisterUserCommand(userHandler)); //Регистрируем пользователя
         commandMap.put("2", new LoginUserCommand(userHandler)); //Авторизируем пользователя
         commandMap.put("3", new CreateConferenceRoomCommand(conferenceRoomInput)); //Создаем Конференц-зал
@@ -49,7 +49,7 @@ public class MenuCommandExecutor {
         Command command = commandMap.get(choice);
         if (command != null) {
             command.execute();
-            return choice.equals("o");
+            return choice.equals("0");
         } else {
             System.out.println("Invalid option. Please try again.");
             return false;

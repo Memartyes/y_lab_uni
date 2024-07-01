@@ -14,42 +14,6 @@ import java.util.Optional;
 public class UserRepository {
 
     /**
-     * for testing process
-     * @param args
-     */
-    public static void main(String[] args) {
-        try (Connection connection = DatabaseUtil.getConnection()) {
-            UserRepository userRepository = new UserRepository();
-            User user = new User();
-            user.setName("Joey");
-            user.setEmail("joey@gmail.com");
-            user.setPassword("password");
-
-            userRepository.saveUser(user);
-            System.out.println("saveUser: " + connection.isValid(10));
-
-            userRepository.findByUsername("Joey");
-            System.out.println("findByUsername: " + connection.isValid(10));
-
-            userRepository.findAllUsers();
-            System.out.println("findAllUsers:" + connection.isValid(10));
-
-            user.setPassword("pw123");
-            userRepository.updateUser(user);
-            System.out.println("updateUser:" + connection.isValid(10));
-
-            int userId = user.getId();
-            userRepository.deleteUser(userId);
-            System.out.println("deleteUser:" + connection.isValid(10));
-
-            System.out.println("Finish." + connection.isValid(10));
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
-        }
-    }
-
-    /**
      * Сохраняем пользователя в database.
      *
      * @param user the user to save

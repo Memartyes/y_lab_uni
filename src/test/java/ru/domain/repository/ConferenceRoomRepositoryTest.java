@@ -23,7 +23,6 @@ class ConferenceRoomRepositoryTest {
             .withDatabaseName("postgres")
             .withUsername("postgres")
             .withPassword("password")
-            .withExposedPorts(5433, 5432)
             .withInitScript("db/changelog/changeset/init_conference_room.sql");
 
     private ConferenceRoomRepository conferenceRoomRepository;
@@ -60,7 +59,8 @@ class ConferenceRoomRepositoryTest {
     }
 
     @Test
-    void testFindAllConferenceRooms() throws SQLException {ConferenceRoom conferenceRoom = new ConferenceRoom();
+    void testFindAllConferenceRooms() throws SQLException {
+        ConferenceRoom conferenceRoom = new ConferenceRoom();
         ConferenceRoom conferenceRoom1 = new ConferenceRoom();
         conferenceRoom1.setName("addConferenceRoom");
         conferenceRoom1.setCapacity(10);

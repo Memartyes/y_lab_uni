@@ -1,14 +1,15 @@
 package ru.domain.menu;
 
-import ru.domain.io.ConsoleOutput;
+import ru.domain.io.out.ConsoleUserOutput;
+import ru.domain.io.out.UserOutput;
 
 /**
  * Класс отвечающий за вывод в консоль информации меню.
  */
 public class MenuDisplay {
-    private final ConsoleOutput output;
+    private final UserOutput output;
 
-    public MenuDisplay(ConsoleOutput output) {
+    public MenuDisplay(UserOutput output) {
         this.output = output;
     }
 

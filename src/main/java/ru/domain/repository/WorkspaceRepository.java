@@ -15,37 +15,6 @@ import java.util.Optional;
 public class WorkspaceRepository {
 
     /**
-     * for testing process
-     * @param args
-     */
-    public static void main(String[] args) {
-        try (Connection connection = DatabaseUtil.getConnection()) {
-            WorkspaceRepository workspaceRepository = new WorkspaceRepository();
-            Workspace workspace = new Workspace();
-            workspace.setName("Observer");
-            workspace.setBookedBy("Joey");
-            workspace.setBookingTime(LocalDateTime.now());
-
-            workspaceRepository.addWorkspace(workspace);
-            System.out.println("addWorkspace: " + connection.isValid(10));
-
-            workspaceRepository.findAllWorkspaces();
-            System.out.println("findAllWorkspaces: " + connection.isValid(10));
-
-            workspace.setName("Content creator");
-            workspaceRepository.updateWorkspace(workspace);
-            System.out.println("updateWorkspace: " + connection.isValid(10));
-
-            int workspaceId = workspace.getId();
-            workspaceRepository.deleteWorkspace(workspaceId);
-            System.out.println("deleteWorkspace: " + connection.isValid(10));
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
-        }
-    }
-
-    /**
      * Добавляем новое рабочее место в database.
      *
      * @param workspace the workspace
@@ -80,7 +49,7 @@ public class WorkspaceRepository {
      * @return found workspace, null otherwise
      */
     public Optional<Workspace> findWorkspaceByName(String name) {
-        String sql = "SELECT id, name, bookedBy, bookingTime FROM coworking.\"workspaces-liquibase\" WHERE name = ?";
+        String sql = "SELECT id, name, \"bookedBy\", \"bookingTime\" FROM coworking.\"workspaces-liquibase\" WHERE name = ?";
         try (Connection connection = DatabaseUtil.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, name);

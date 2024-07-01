@@ -17,10 +17,15 @@ public class Booking {
     private String bookedBy;
     private LocalDateTime bookingTime;
     private ZoneId zoneId = ZoneId.systemDefault();
+    private int bookingDurationHours; //WorkspaceConfig.BOOKING_DURATION_HOURS.getValue()
 
-    public Booking(String bookedBy, LocalDateTime bookingTime) {
+    public Booking(String bookedBy, LocalDateTime bookingTime, int bookingDurationHours) {
+        if (bookedBy == null || bookingTime == null) {
+            throw new IllegalArgumentException("Booked by User and Booking time cannot be null");
+        }
         this.bookedBy = bookedBy;
         this.bookingTime = bookingTime;
+        this.bookingDurationHours = bookingDurationHours;
     }
 
     /**
@@ -29,7 +34,7 @@ public class Booking {
      * @return true if the booking time is expired, false otherwise
      */
     public boolean isExpired() {
-        LocalDateTime expirationTime = bookingTime.plusHours(WorkspaceConfig.BOOKING_DURATION_HOURS.getValue());
+        LocalDateTime expirationTime = bookingTime.plusHours(bookingDurationHours);
         return LocalDateTime.now(zoneId).isAfter(expirationTime);
     }
 
@@ -42,6 +47,6 @@ public class Booking {
         if (bookingTime == null) {
             return null;
         }
-        return bookingTime.plusHours(WorkspaceConfig.BOOKING_DURATION_HOURS.getValue()).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        return bookingTime.plusHours(bookingDurationHours).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
     }
 }

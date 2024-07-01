@@ -14,36 +14,6 @@ import java.util.Optional;
 public class ConferenceRoomRepository {
 
     /**
-     * for testing process
-     * @param args
-     */
-    public static void main(String[] args) {
-        try (Connection connection = DatabaseUtil.getConnection()) {
-            ConferenceRoomRepository conferenceRoomRepository = new ConferenceRoomRepository();
-            ConferenceRoom conferenceRoom = new ConferenceRoom();
-            conferenceRoom.setName("Information Technology");
-            conferenceRoom.setCapacity(8);
-
-            conferenceRoomRepository.addConferenceRoom(conferenceRoom);
-            System.out.println("addConferenceRoom: " + connection.isValid(10));
-
-            conferenceRoomRepository.findAllConferenceRooms();
-            System.out.println("finaAllConferenceRooms: " + connection.isValid(10));
-
-            conferenceRoom.setCapacity(2);
-            conferenceRoomRepository.updateConferenceRoom(conferenceRoom);
-            System.out.println("updateConferenceRoom: " + connection.isValid(10));
-
-            int conferenceRoomId = conferenceRoom.getId();
-            conferenceRoomRepository.deleteConferenceRoom(conferenceRoomId);
-            System.out.println("deleteConferenceRoom: " + connection.isValid(10));
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
-        }
-    }
-
-    /**
      * Добавляем новый конференц-зал в database.
      *
      * @param conferenceRoom the conference room
@@ -76,7 +46,7 @@ public class ConferenceRoomRepository {
      * @return the conference room, null otherwise
      */
     public Optional<ConferenceRoom> findConferenceRoomByName(String name) {
-        String sql = "SELECT id, name, capacity FROM coworking.\"conference_room-liquibase\" WHERE name = ?";
+        String sql = "SELECT id, name, capacity FROM coworking.\"conference_rooms-liquibase\" WHERE name = ?";
         try (Connection connection = DatabaseUtil.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, name);

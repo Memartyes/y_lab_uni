@@ -1,15 +1,15 @@
 package ru.domain.managers;
 
 import lombok.Getter;
+import lombok.Setter;
+import ru.domain.config.WorkspaceConfig;
 import ru.domain.entities.ConferenceRoom;
 import ru.domain.config.DefaultConferenceRooms;
+import ru.domain.entities.Workspace;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.time.LocalDate;
-import java.util.stream.Collectors;
 
 /**
  * Определим класс для управления Конференц-залами.
@@ -17,12 +17,15 @@ import java.util.stream.Collectors;
 @Getter
 public class ConferenceRoomManager {
     private Map<String, ConferenceRoom> conferenceRooms;
+    @Setter
+    private ConferenceRoomFilter conferenceRoomFilter;
 
     /**
      * Инициализируем конструктор с заранее установленными Конференц-залами
      */
     public ConferenceRoomManager() {
         this.conferenceRooms = new HashMap<>();
+        this.conferenceRoomFilter = new ConferenceRoomFilter(conferenceRooms);
         initializeConferenceRooms();
     }
 
@@ -31,28 +34,28 @@ public class ConferenceRoomManager {
      */
     public void initializeConferenceRooms() {
         for (DefaultConferenceRooms room : DefaultConferenceRooms.values()) {
-            this.conferenceRooms.put(room.getName(), new ConferenceRoom(room.getName()));
+            this.conferenceRooms.put(room.getName(), new ConferenceRoom(room.getName(), WorkspaceConfig.WORKSPACES_CAPACITY.getValue()));
         }
     }
 
     /**
      * Создаем новый Конференц-зал.
      *
-     * @param roomId the conference room ID
+     * @param roomName the conference room name
      */
-    public void addConferenceRoom(String roomId) {
-        if (conferenceRooms.containsKey(roomId)) {
-            throw new IllegalArgumentException("Conference room with id " + roomId + " already exists.");
+    public void addConferenceRoom(String roomName) {
+        if (conferenceRooms.containsKey(roomName)) {
+            throw new IllegalArgumentException("Conference room with name " + roomName + " already exists.");
         }
 
-        conferenceRooms.put(roomId, new ConferenceRoom(roomId));
+        conferenceRooms.put(roomName, new ConferenceRoom(roomName, WorkspaceConfig.WORKSPACES_CAPACITY.getValue()));
     }
 
     /**
      * Вносим изменение в ID уже существующего Конференц-зала
      *
-     * @param oldRoomName the old conference room ID
-     * @param newRoomName the new conference room ID
+     * @param oldRoomName the old conference room name
+     * @param newRoomName the new conference room name
      */
     public void updateConferenceRoomName(String oldRoomName, String newRoomName) {
         if (!conferenceRooms.containsKey(oldRoomName)) {
@@ -93,18 +96,112 @@ public class ConferenceRoomManager {
     }
 
     /**
+     * Добавляем рабочее место в Конференц-зал.
+     *
+     * @param conferenceRoomName the conference room name
+     * @param workspaceName the workspace name
+     */
+    public void addWorkspaceToConferenceRoom(String conferenceRoomName, String workspaceName) {
+        ConferenceRoom conferenceRoom = getConferenceRoom(conferenceRoomName);
+        if (conferenceRoom == null) {
+            throw new IllegalArgumentException("Conference room with name " + conferenceRoomName + " not found.");
+        }
+        Optional<Workspace> existingWorkspace = conferenceRoom.getWorkspace(workspaceName);
+        if (existingWorkspace.isPresent()) {
+            throw new IllegalArgumentException("Workspace with name " + workspaceName + " already exists in conference room " + conferenceRoomName);
+        }
+        Workspace workspace = new Workspace(workspaceName);
+        conferenceRoom.addWorkspace(workspace);
+    }
+
+    /**
+     * Бронируем все доступные рабочие места во всех конференц-залах для пользователя.
+     *
+     * @param conferenceRoomName the conference room
+     * @param userName the username
+     * @param bookingTime the booking time
+     */
+    public void bookWholeConferenceRoom(String conferenceRoomName, String userName, LocalDateTime bookingTime) {
+        ConferenceRoom room = getConferenceRoom(conferenceRoomName);
+        if (room == null) {
+            throw new IllegalArgumentException("Conference room with name " + conferenceRoomName + " not found.");
+        }
+
+        for (Workspace workspace : room.getWorkspaces()) {
+            if (!workspace.isBooked()) {
+                workspace.book(userName, bookingTime, WorkspaceConfig.BOOKING_DURATION_HOURS.getValue());
+            }
+        }
+    }
+
+    /**
+     * Бронируем рабочее место для пользователя в Конференц-зале.
+     *
+     * @param workspaceName the workspace name
+     * @param userName the username
+     * @param bookingTime the booking time
+     */
+    public void bookWorkspace(String conferenceRoomName, String workspaceName, String userName, LocalDateTime bookingTime, int bookingDurationHours) {
+        ConferenceRoom room = getConferenceRoom(conferenceRoomName);
+        if (room == null) {
+            throw new IllegalArgumentException("Conference room with name " + conferenceRoomName + " not found.");
+        }
+
+        Workspace workspace = room.getWorkspace(workspaceName).orElseThrow(() ->
+                new IllegalArgumentException("Workspace with name " + workspaceName + " not found in conference room " + conferenceRoomName));
+
+        if (workspace.isBooked()) {
+            throw new IllegalStateException("Workspace with name " + workspaceName + " is already booked.");
+        }
+
+        workspace.book(userName, bookingTime, bookingDurationHours);
+    }
+
+    /**
+     * Отменяем бронирование рабочего места в Конференц-зале.
+     *
+     * @param workspaceName the workspace name
+     */
+    public void cancelBookingForWorkspace(String conferenceRoomName, String workspaceName) {
+        ConferenceRoom room = getConferenceRoom(conferenceRoomName);
+        if (room == null) {
+            throw new IllegalArgumentException("Conference room with name " + conferenceRoomName + " not found.");
+        }
+
+        Workspace workspace = room.getWorkspace(workspaceName).orElseThrow(() ->
+                new IllegalArgumentException("Workspace with name " + workspaceName + " not found in conference room " + conferenceRoomName));
+        workspace.cancelBooking();
+    }
+
+    /**
+     * Отменяем бронирование всех рабочих мест в Конференц-зале.
+     *
+     * @param conferenceRoomName the conference room name.
+     */
+    public void cancelBookingForAllWorkspaces(String conferenceRoomName) {
+        ConferenceRoom room = getConferenceRoom(conferenceRoomName);
+        if (room == null) {
+            throw new IllegalArgumentException("Conference room with name " + conferenceRoomName + " not found.");
+        }
+
+        for (Workspace workspace : room.getWorkspaces()) {
+            workspace.cancelBooking();
+        }
+    }
+
+    /**
      * Возвращаем доступные слоты рабочих мест в Конференц-зале
      *
-     * @param conferenceRoomId the conference room ID
+     * @param conferenceRoomName the conference room ID
      * @param date the date
      * @return the list of available slots in conference room
      */
-    public List<String> getAvailableSlots(String conferenceRoomId, LocalDate date) {
-        ConferenceRoom room = getConferenceRoom(conferenceRoomId);
+    public List<String> getAvailableSlots(String conferenceRoomName, LocalDate date) {
+        ConferenceRoom room = getConferenceRoom(conferenceRoomName);
         if (room == null) {
-            throw new IllegalArgumentException("Conference room with id " + conferenceRoomId + " not found.");
+            throw new IllegalArgumentException("Conference room with id " + conferenceRoomName + " not found.");
         }
-        return room.getBookingManager().getAvailableSlots(date.atStartOfDay());
+        return room.getBookingWorkspaceManager().getAvailableSlots(date.atStartOfDay());
     }
 
     /**
@@ -113,13 +210,7 @@ public class ConferenceRoomManager {
      * @return the list of conference rooms that has booked workspaces on current date
      */
     public List<String> filterByDate(LocalDate date) {
-        List<String> results = new ArrayList<>();
-        for (ConferenceRoom room : conferenceRooms.values()) {
-            if (room.hasBookingOnDate(date)) {
-                results.add(room.getName() + " has booking on " + date);
-            }
-        }
-        return results;
+        return conferenceRoomFilter.filterByDate(date);
     }
 
     /**
@@ -128,13 +219,7 @@ public class ConferenceRoomManager {
      * @return the list of conference rooms that has booked by current user
      */
     public List<String> filterByUser(String userId) {
-        List<String> results = new ArrayList<>();
-        for (ConferenceRoom room : conferenceRooms.values()) {
-            if (room.hasBookingByUser(userId)) {
-                results.add(room.getName() + " has bookings by user " + userId);
-            }
-        }
-        return results;
+        return conferenceRoomFilter.filterByUser(userId);
     }
 
     /**
@@ -142,9 +227,6 @@ public class ConferenceRoomManager {
      * @return the list of conference rooms available for book
      */
     public List<String> filterByAvailableWorkspaces() {
-        return conferenceRooms.values().stream()
-                .filter(ConferenceRoom::hasAvailableWorkspaces)
-                .map(room -> room.getName() + " has available workspaces")
-                .collect(Collectors.toList());
+        return conferenceRoomFilter.filterByAvailableWorkspaces();
     }
 }

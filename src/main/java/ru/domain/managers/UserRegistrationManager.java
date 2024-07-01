@@ -4,6 +4,7 @@ import ru.domain.entities.User;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Определяем класс для регистрации пользователя в системе.
@@ -28,5 +29,15 @@ public class UserRegistrationManager {
 
         User newUser = new User(userName, password);
         users.put(userName, newUser);
+    }
+
+    /**
+     * Получаем пользователя по имени.
+     *
+     * @param userName the username
+     * @return the user
+     */
+    public Optional<User> getUser(String userName) {
+        return Optional.ofNullable(users.get(userName));
     }
 }

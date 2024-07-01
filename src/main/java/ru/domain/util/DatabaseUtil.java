@@ -1,6 +1,7 @@
 package ru.domain.util;
 
 import java.sql.*;
+import java.util.Properties;
 
 /**
  * Ютилити класс для управления database connection
@@ -30,6 +31,26 @@ public class DatabaseUtil {
      */
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USER, PASSWORD);
+    }
+
+    /**
+     * Возвращает connection для database, принимает новый properties
+     * @param properties
+     * @return
+     */
+    public static Connection getConnectionFromProperties(Properties properties) {
+        Connection connection = null;
+        try {
+            connection = DriverManager.getConnection(
+                    properties.getProperty("database.url"),
+                    properties.getProperty("database.username"),
+                    properties.getProperty("database.password")
+            );
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Connection error: " + e.getMessage());
+        }
+        return connection;
     }
 
     public static void main(String[] args) {

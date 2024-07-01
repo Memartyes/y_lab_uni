@@ -11,6 +11,6 @@ public class RegisterUserCommand implements Command {
 
     @Override
     public void execute() {
-        userInput.handleRegisterUser();
+        userInput.handleUserRegistration();
     }
 }

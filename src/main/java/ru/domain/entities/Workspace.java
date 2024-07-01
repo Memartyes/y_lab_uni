@@ -2,18 +2,22 @@ package ru.domain.entities;
 
 import lombok.Getter;
 import lombok.Setter;
+import ru.domain.interfaces.Bookable;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Клас представляет рабочие места.
  */
 @Getter
 @Setter
-public class Workspace {
+public class Workspace implements Bookable {
     private int id;
     private String name;
-    private Booking currentBooking;
+    private List<Booking> bookings;
 
     private boolean booked; //TODO: delete after database refactoring.
     private String bookedBy; //TODO: delete after database refactoring.
@@ -25,6 +29,7 @@ public class Workspace {
      */
     public Workspace(String name) {
         this.name = name;
+        this.bookings = new ArrayList<>();
     }
 
     public Workspace() {}
@@ -35,15 +40,36 @@ public class Workspace {
      * @param userName the user's name who books the workspace
      * @param bookingTime the booking time
      */
-    public void book(String userName, LocalDateTime bookingTime) {
-        this.currentBooking = new Booking(userName, bookingTime);
+    @Override
+    public void book(String userName, LocalDateTime bookingTime, int bookingDurationHours) {
+        Booking booking = new Booking(userName, bookingTime, bookingDurationHours);
+        this.bookings.add(booking);
     }
 
     /**
      * Отменяем бронирование рабочих мест
      */
+    @Override
     public void cancelBooking() {
-        this.currentBooking = null;
+        bookings.clear();
+    }
+
+    /**
+     * Удаляем бронирование по времени.
+     *
+     * @param bookingTime the booking time to remove the booking
+     */
+    @Override
+    public void removeBooking(LocalDateTime bookingTime) {
+        Iterator<Booking> iterator = bookings.iterator();
+        while (iterator.hasNext()) {
+            Booking booking = iterator.next();
+            if (booking.getBookingTime().equals(bookingTime)) {
+                iterator.remove();
+                return;
+            }
+        }
+        throw new IllegalArgumentException("Booking with the specified time not found");
     }
 
     /**
@@ -51,8 +77,9 @@ public class Workspace {
      *
      * @return true if the workspace is booked, false otherwise
      */
+    @Override
     public boolean isBooked() {
-        return currentBooking != null && !currentBooking.isExpired();
+        return !bookings.isEmpty();
     }
 
     /**
@@ -60,7 +87,11 @@ public class Workspace {
      *
      * @return the booking end time as string
      */
-    public String getBookingEndTime() {
-        return currentBooking == null ? null : currentBooking.getFormattedEndTime();
+        public String getBookingEndTime() {
+        return bookings.stream()
+                .filter(booking -> booking.getBookingTime().equals(bookingTime))
+                .map(Booking::getFormattedEndTime)
+                .findFirst()
+                .orElse(null);
     }
 }

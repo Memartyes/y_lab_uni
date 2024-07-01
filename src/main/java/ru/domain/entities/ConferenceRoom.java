@@ -3,80 +3,71 @@ package ru.domain.entities;
 import lombok.Getter;
 import lombok.Setter;
 import ru.domain.config.WorkspaceConfig;
-import ru.domain.managers.BookingManager;
+import ru.domain.interfaces.Room;
+import ru.domain.managers.BookingWorkspaceManager;
+import ru.domain.managers.WorkspaceManager;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.ArrayList;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Определяем класс Конференц-зала который содержит рабочие места (Workspace).
  */
 @Getter
 @Setter
-public class ConferenceRoom {
+public class ConferenceRoom implements Room {
     private int id;
     private String name;
     private int capacity;
+    private WorkspaceManager workspaceManager;
+    private BookingWorkspaceManager bookingWorkspaceManager;
     private List<Workspace> workspaces;
-    private BookingManager bookingManager;
 
     /**
      * Создаем новый Конференц-зал.
      *
      * @param name the conference room name
+     * @param capacity the conference room capacity
      */
-    public ConferenceRoom(String name) {
+    public ConferenceRoom(String name, int capacity) {
         this.name = name;
-        this.workspaces = new ArrayList<>();
-        initializeWorkspace();
-        this.capacity = WorkspaceConfig.WORKSPACES_CAPACITY.getValue();
-        this.bookingManager = new BookingManager(workspaces);
+        this.capacity = capacity;
+        this.workspaceManager = new WorkspaceManager();
+        this.workspaces = workspaceManager.initializeWorkspaces(capacity);
+        this.bookingWorkspaceManager = new BookingWorkspaceManager(workspaces);
     }
 
     public ConferenceRoom() {
         this.capacity = WorkspaceConfig.WORKSPACES_CAPACITY.getValue();
-        this.workspaces = new ArrayList<>();
-        this.bookingManager = new BookingManager(workspaces);
+        this.workspaceManager = new WorkspaceManager();
+        this.workspaces = workspaceManager.initializeWorkspaces(this.capacity);
+        this.bookingWorkspaceManager = new BookingWorkspaceManager(workspaces);
     }
 
     /**
-     * Определим рабочие места по умолчанию
-     */
-    public void initializeWorkspace() {
-        for (int i = 1; i <= WorkspaceConfig.WORKSPACES_CAPACITY.getValue(); i++) {
-            this.workspaces.add(new Workspace(String.valueOf(i)));
-        }
-    }
-
-    /**
-     * Получаем рабочее место по ID.
+     * Получаем рабочее место по его названию.
      *
-     * @param workspaceId the workspace ID
-     * @return the workspace with the workspaceId, or null if not found
+     * @param workspaceName the workspace name
+     * @return the workspace by name, or null otherwise
      */
-    public Workspace getWorkspace(String workspaceId) {
+    public Optional<Workspace> getWorkspace(String workspaceName) {
         return workspaces.stream()
-                .filter(workspace -> workspace.getName().equals(workspaceId))
-                .findFirst()
-                .orElse(null);
+                .filter(workspace -> workspace.getName().equals(workspaceName))
+                .findFirst();
     }
 
     /**
      * Добавляем рабочее место в Конференц-зал.
      *
      * @param workspace the workspace to add
-     * @throws IllegalStateException if the workspace limit is reached
      */
     public void addWorkspace(Workspace workspace) {
-        for (Workspace ws : workspaces) {
-            if (ws.getName().equals(workspace.getName())) {
-                throw new IllegalArgumentException("Workspace already exists");
-            }
+        if (getWorkspace(workspace.getName()).isPresent()) {
+            throw new IllegalArgumentException("Workspace with name " + workspace.getName() + " already exists.");
         }
-
-        this.workspaces.add(workspace);
+        workspaces.add(workspace);
     }
 
     /**
@@ -91,20 +82,20 @@ public class ConferenceRoom {
     /**
      * Бронируем все доступные рабочие места в Конференц-зале для указанного пользователя.
      *
-     * @param userId the user ID
+     * @param userName the username
      * @param bookingTime the booking time
      */
-    public void bookAllWorkspaces(String userId, LocalDateTime bookingTime) {
-        bookingManager.bookAllWorkspaces(userId, bookingTime);
+    public void bookAllWorkspaces(String userName, LocalDateTime bookingTime) {
+        bookingWorkspaceManager.bookAllWorkspaces(userName, bookingTime);
     }
 
     /**
      * Отменяем бронирование конкретного рабочего места.
      *
-     * @param workspaceId the workspace ID
+     * @param workspaceName the workspace name
      */
-    public void cancelBookingForWorkspace(String workspaceId) {
-        bookingManager.cancelBookingForWorkspace(workspaceId);
+    public void cancelBookingForWorkspace(String workspaceName) {
+        bookingWorkspaceManager.cancelBookingForWorkspace(workspaceName);
     }
 
     /**
@@ -114,14 +105,14 @@ public class ConferenceRoom {
      * @return true if the date time is available for book, false otherwise
      */
     public boolean isBookingTimeAvailable(LocalDateTime dateTime) {
-        return bookingManager.isBookingTimeAvailable(dateTime);
+        return bookingWorkspaceManager.isBookingTimeAvailable(dateTime);
     }
 
     /**
      * Отменяем бронирование всех рабочих мест в конференц-зале
      */
     public void cancelBookingForAllWorkspaces() {
-        bookingManager.cancelBookingForAllWorkspaces();
+        bookingWorkspaceManager.cancelBookingForAllWorkspaces();
     }
 
     /**
@@ -131,17 +122,17 @@ public class ConferenceRoom {
      * @return true if booked, false otherwise
      */
     public boolean hasBookingOnDate(LocalDate date) {
-        return bookingManager.hasBookingOnDate(date);
+        return bookingWorkspaceManager.hasBookingOnDate(date);
     }
 
     /**
      * Проверяет наличие бронирований, сделанных указанным пользователем.
      *
-     * @param userId the user ID
+     * @param userId the username
      * @return true if the user has books
      */
     public boolean hasBookingByUser(String userId) {
-        return bookingManager.hasBookingByUser(userId);
+        return bookingWorkspaceManager.hasBookingByUser(userId);
     }
 
     /**

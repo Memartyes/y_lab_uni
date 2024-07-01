@@ -27,7 +27,6 @@ class WorkspaceRepositoryTest {
             .withDatabaseName("postgres")
             .withUsername("postgres")
             .withPassword("password")
-            .withExposedPorts(5433, 5432)
             .withInitScript("db/changelog/changeset/init_workspace.sql");
 
     private WorkspaceRepository workspaceRepository;

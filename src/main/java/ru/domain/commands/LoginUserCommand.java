@@ -11,6 +11,6 @@ public class LoginUserCommand implements Command {
 
     @Override
     public void execute() {
-        userInput.handleLoginUser();
+        userInput.handleUserLogin();
     }
 }

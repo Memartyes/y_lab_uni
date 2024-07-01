@@ -1,101 +1,101 @@
 package ru.domain.managers;
 
+import lombok.Getter;
+import ru.domain.config.WorkspaceConfig;
 import ru.domain.entities.Workspace;
 import ru.domain.entities.ConferenceRoom;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 /**
- * Определяем класс для управления раб
+ * Определяем класс для управления рабочими местами
  */
 public class WorkspaceManager {
-    private ConferenceRoomManager conferenceRoomManager;;
+    @Getter
+    private List<Workspace> workspaces;
 
-    public WorkspaceManager(ConferenceRoomManager conferenceRoomManager) {
-        this.conferenceRoomManager = conferenceRoomManager;
+    public WorkspaceManager() {
+        this.workspaces = new ArrayList<>();
     }
 
     /**
-     * Добавляем рабочее место в Конференц-зал
+     * Определяем рабочие места по умолчанию.
      *
-     * @param conferenceRoomId the conference room ID
-     * @param workspaceId the workspace ID
+     * @param capacity the conference room capacity
      */
-    public void addWorkspace(String conferenceRoomId, String workspaceId) {
-        ConferenceRoom conferenceRoom = conferenceRoomManager.getConferenceRoom(conferenceRoomId);
-
-        if (conferenceRoom == null) {
-            throw new IllegalArgumentException("Conference room with id " + conferenceRoomId + " not found.");
+    public List<Workspace> initializeWorkspaces(int capacity) {
+        List<Workspace> workspaces = new ArrayList<>();
+        for (int i = 1; i <= capacity; i++) {
+            Workspace workspace = new Workspace(String.valueOf(i));
+            workspaces.add(workspace);
         }
-
-        conferenceRoom.addWorkspace(new Workspace(workspaceId));
+        return workspaces;
     }
 
     /**
-     * Бронируем рабочее место для пользователя в Конференц-зале/
+     * Получаем рабочее место по его названию
      *
-     * @param conferenceRoomId the conference room ID
-     * @param workspaceId the workspace ID
-     * @param userId the user ID
+     * @param workspaceName the workspace name
+     * @return the workspace by name, or null otherwise
      */
-    public void bookWorkspace(String conferenceRoomId, String workspaceId, String userId, LocalDateTime bookingTime) {
-        ConferenceRoom conferenceRoom = conferenceRoomManager.getConferenceRoom(conferenceRoomId);
-        if (conferenceRoom == null) {
-            throw new IllegalArgumentException("Conference room with id " + conferenceRoomId + " not found.");
+    public Optional<Workspace> getWorkspace(String workspaceName) {
+        return workspaces.stream()
+                .filter(workspace -> workspace.getName().equals(workspaceName))
+                .findFirst();
+    }
+
+    /**
+     * Добавляем рабочее место.
+     *
+     * @param workspace the workspace to add
+     */
+    public void addWorkspace(Workspace workspace) {
+        if (getWorkspace(workspace.getName()).isPresent()) {
+            throw new IllegalArgumentException("Workspace with name " + workspace.getName() + " already exists.");
         }
+        workspaces.add(workspace);
+    }
 
-        if (!conferenceRoom.isBookingTimeAvailable(bookingTime)) {
-            throw new IllegalArgumentException("Time slot is not available for conference room with id " + conferenceRoomId);
-        }
-
-        Workspace workspace = conferenceRoom.getWorkspace(workspaceId);
-
+    /**
+     * Отменяем бронирование рабочего места.
+     *
+     * @param workspaceName the workspace name
+     */
+    public void cancelBookingWorkspace(String workspaceName) {
+        Workspace workspace = getWorkspace(workspaceName).orElse(null);
         if (workspace == null) {
-            throw new IllegalArgumentException("Workspace with id " + workspaceId + " not found.");
+            throw new IllegalArgumentException("Workspace with name " + workspaceName + " not found.");
         }
-
-        workspace.book(userId, bookingTime);
+        workspace.cancelBooking();
     }
 
     /**
-     * Бронируем все рабочие места в Конференц-зале
-     *
-     * @param conferenceRoomId the conference room ID
-     * @param userId the user ID
-     * @param bookingTime the booking time
+     * Отменяем бронирование всех рабочих мест.
      */
-    public void bookAllWorkspaces(String conferenceRoomId, String userId, LocalDateTime bookingTime) {
-        ConferenceRoom room = conferenceRoomManager.getConferenceRoom(conferenceRoomId);
-        if (room == null) {
-            throw new IllegalArgumentException("Conference room with id " + conferenceRoomId + " not found.");
+    public void cancelBookingForAllWorkspaces() {
+        for (Workspace workspace : workspaces) {
+            workspace.cancelBooking();
         }
-        room.bookAllWorkspaces(userId, bookingTime);
     }
 
     /**
-     * Отмена бронирования рабочих мест в конференц-залах
+     * Возвращаем количество доступных рабочих мест.
      *
-     * @param conferenceRoomId the conference room ID
-     * @param workspaceId the workspace ID
+     * @return the available workspaces count
      */
-    public void cancelBookingWorkspace(String conferenceRoomId, String workspaceId) {
-        ConferenceRoom conferenceRoom = conferenceRoomManager.getConferenceRoom(conferenceRoomId);
-        if (conferenceRoom == null) {
-            throw new IllegalArgumentException("Conference room with id " + conferenceRoomId + " not found.");
-        }
-        conferenceRoom.cancelBookingForWorkspace(workspaceId);
+    public int getAvailableWorkspaceCount() {
+        return (int) workspaces.stream().filter(workspace -> !workspace.isBooked()).count();
     }
 
     /**
-     * Отмена бронирования Конференц-залов
+     * Проверяем Конференц-зал на наличие свободных рабочих мест.
      *
-     * @param conferenceRoomId the conference room ID
+     * @return true if available at least one workspace, false otherwise
      */
-    public void cancelBookingForAllWorkspaces(String conferenceRoomId) {
-        ConferenceRoom conferenceRoom = conferenceRoomManager.getConferenceRoom(conferenceRoomId);
-        if (conferenceRoom == null) {
-            throw new IllegalArgumentException("Conference room with id " + conferenceRoomId + " not found.");
-        }
-        conferenceRoom.cancelBookingForAllWorkspaces();
+    public boolean hasAvailableWorkspaces() {
+        return workspaces.stream().anyMatch(workspace -> !workspace.isBooked());
     }
 }

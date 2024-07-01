@@ -1,12 +1,13 @@
 package ru.domain.menu;
 
-import ru.domain.io.ConsoleUserInput;
+import ru.domain.io.in.ConsoleUserInput;
+import ru.domain.io.in.UserInput;
 
 /**
  * Класс обрабатыает ввод пользователя из консоли
  */
 public class MenuHandler {
-    private final ConsoleUserInput userInput;
+    private final UserInput userInput;
     private final MenuCommandExecutor commandExecutor;
     private final MenuDisplay menuDisplay;
 
@@ -15,7 +16,7 @@ public class MenuHandler {
      * @param commandExecutor the command executor
      * @param menuDisplay the menu display
      */
-    public MenuHandler(ConsoleUserInput userInput, MenuCommandExecutor commandExecutor, MenuDisplay menuDisplay) {
+    public MenuHandler(UserInput userInput, MenuCommandExecutor commandExecutor, MenuDisplay menuDisplay) {
         this.userInput = userInput;
         this.commandExecutor = commandExecutor;
         this.menuDisplay = menuDisplay;
