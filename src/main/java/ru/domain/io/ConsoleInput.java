@@ -21,6 +21,10 @@ public class ConsoleInput {
         return scanner.nextLine();
     }
 
+    public int readInt() {
+        return scanner.nextInt();
+    }
+
     /**
      * Закрываем поток Scanner.
      */

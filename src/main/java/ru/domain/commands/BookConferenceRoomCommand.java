@@ -1,16 +1,16 @@
 package ru.domain.commands;
 
-import ru.domain.io.ConsoleConferenceRoomInput;
+import ru.domain.handlers.ConferenceRoomHandler;
 
 public class BookConferenceRoomCommand implements Command {
-    private ConsoleConferenceRoomInput conferenceRoomInput;
+    private ConferenceRoomHandler conferenceRoomInput;
 
-    public BookConferenceRoomCommand(ConsoleConferenceRoomInput conferenceRoomInput) {
+    public BookConferenceRoomCommand(ConferenceRoomHandler conferenceRoomInput) {
         this.conferenceRoomInput = conferenceRoomInput;
     }
 
     @Override
     public void execute() {
-        conferenceRoomInput.bookConferenceRoom();
+        conferenceRoomInput.handleBookConferenceRoom();
     }
 }

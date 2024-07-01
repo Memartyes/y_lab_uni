@@ -1,35 +1,42 @@
 package ru.domain.entities;
 
 import lombok.Getter;
+import lombok.Setter;
 
 /**
- * Определяем класс для создания обьектов User.
+ * Класс представляет пользователей.
  */
-@Getter
-public class User {
-    /**
-     * Обьявляем три instance переменные класса User.
-     * -- GETTER --
-     *  Возвращаем пользовательский ID.
-     *
-     * @return the user ID
 
-     */
-    private String id;
-    /**
-     * -- GETTER --
-     *  Возвращаем пользовательский password.
-     *
-     * @return the user's password
-     */
+@Getter
+@Setter
+public class User {
+    private int id;
+    private String name;
     private String password;
+    private String email;
 
     /**
      * Контсруктор для класса User.
      */
-    public User(String id, String password) {
-        this.id = id;
+    public User(String name, String email, String password) {
+        this.name = name;
+        this.email = email;
         this.password = password;
     }
 
+    public User(String name, String password) {
+        this.name = name;
+        this.password = password;
+    }
+
+    public User() {}
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                '}';
+    }
 }

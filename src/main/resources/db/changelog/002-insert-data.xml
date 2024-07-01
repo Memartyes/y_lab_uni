@@ -4,21 +4,38 @@
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-            https://liquabase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
         logicalFilePath="db/changelog/changelog.xml">
     <changeSet id="002-insert-data" author="Memartyes">
-        <insert tableName="users-liquibase">
-            <column name="id" valueNumeric="1"/>
-            <column name="username" value="user1"/>
-            <column name="email" value="user1@example.com"/>
+        <insert tableName="users-liquibase" schemaName="coworking">
+            <column name="name" value="Admin"/>
+            <column name="email" value="admin@example.com"/>
+            <column name="password" value="admin"/>
         </insert>
-        <insert tableName="users-liquibase">
-            <column name="id" valueNumeric="2"/>
-            <column name="username" value="user2"/>
-            <column name="email" value="user2@example.com"/>
+        <insert tableName="users-liquibase" schemaName="coworking">
+            <column name="name" value="Almighty"/>
+            <column name="email" value="almighty@example.com"/>
+            <column name="password" value="almighty"/>
+        </insert>
+
+        <insert tableName="workspaces-liquibase" schemaName="coworking">
+            <column name="name" value="Observer"/>
+            <column name="bookedBy" value="Admin"/>
+            <column name="bookingTime" value="08:00:00"/>
+        </insert>
+        <insert tableName="workspaces-liquibase" schemaName="coworking">
+            <column name="name" value="Maker"/>
+            <column name="bookedBy" value="Almighty"/>
+            <column name="bookingTime" value="12:00:00"/>
+        </insert>
+
+        <insert tableName="conference_rooms-liquibase" schemaName="coworking">
+            <column name="name" value="Information Technology"/>
+            <column name="capacity" value="10"/>
+        </insert>
+        <insert tableName="conference_rooms-liquibase" schemaName="coworking">
+            <column name="name" value="Foreign Languages"/>
+            <column name="capacity" value="20"/>
         </insert>
     </changeSet>
-            
-
-
 </databaseChangeLog>

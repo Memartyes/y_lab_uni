@@ -1,95 +1,66 @@
 package ru.domain.entities;
 
 import lombok.Getter;
-import ru.domain.config.WorkspaceConfig;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 /**
- * Определяем класс для определения рабочих мест в Конференц-залах
+ * Клас представляет рабочие места.
  */
 @Getter
+@Setter
 public class Workspace {
-    /**
-     * -- GETTER --
-     *  Возвращаем ID рабочего места.
-     *
-     * @return the workspace ID
-     */
-    private String id;
-    /**
-     * -- GETTER --
-     *  Проверяем, забронировано ли рабочее место
-     *
-     * @return true if workspace is booked, false otherwise
-     */
-    private boolean booked;
-    /**
-     * -- GETTER --
-     *  Возвращаем ID пользователя забронировавшего рабочее место
-     *
-     * @return the user's ID who booked the workspace, or null if not booked
-     */
-    private String bookedBy;
-    /**
-     * -- GETTER --
-     *  Возвращаем забронированное время
-     *
-     * @return the booking time
-     */
-    private LocalDateTime bookingTime;
+    private int id;
+    private String name;
+    private Booking currentBooking;
+
+    private boolean booked; //TODO: delete after database refactoring.
+    private String bookedBy; //TODO: delete after database refactoring.
+    private LocalDateTime bookingTime; //TODO: delete after database refactoring.
 
     /**
      * Конструктор для создания нового рабочего места.
-     * @param id the workspace ID;
+     * @param name the workspace name;
      */
-    public Workspace(String id) {
-        this.id = id;
-        this.booked = false;
-        this.bookedBy = null; //изначально, рабочее место изначально никем не забронировано
-        this.bookingTime = null; //изначально, рабочее место не забронировано ни на какое время
+    public Workspace(String name) {
+        this.name = name;
     }
+
+    public Workspace() {}
 
     /**
      * Бронируем рабочее место
      *
-     * @param userId the user's ID who books the workspace
+     * @param userName the user's name who books the workspace
      * @param bookingTime the booking time
      */
-    public void book(String userId, LocalDateTime bookingTime) {
-        this.booked = true;
-        this.bookedBy = userId;
-        this.bookingTime = bookingTime;
+    public void book(String userName, LocalDateTime bookingTime) {
+        this.currentBooking = new Booking(userName, bookingTime);
     }
 
     /**
      * Отменяем бронирование рабочих мест
      */
     public void cancelBooking() {
-        this.booked = false;
-        this.bookedBy = null;
-        this.bookingTime = null;
+        this.currentBooking = null;
     }
 
     /**
-     * Проверяем, если бронирование истокло
+     * Проверяем, забронировано ли рабочее место.
      *
-     * @return true if the booking has expired, false otherwise
+     * @return true if the workspace is booked, false otherwise
      */
-    public boolean isBookingExpired() {
-        return bookingTime != null && LocalDateTime.now().isAfter(bookingTime.plusHours(WorkspaceConfig.BOOKING_DURATION_HOURS.getValue()));
+    public boolean isBooked() {
+        return currentBooking != null && !currentBooking.isExpired();
     }
 
     /**
      * Возвращаем время окончания забронированного рабочего места
      *
-     * @return the booking end time, or null if not booked
+     * @return the booking end time as string
      */
     public String getBookingEndTime() {
-        if (bookingTime != null && !isBookingExpired()) {
-            return bookingTime.plusHours(WorkspaceConfig.BOOKING_DURATION_HOURS.getValue()).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        }
-        return null;
+        return currentBooking == null ? null : currentBooking.getFormattedEndTime();
     }
 }
