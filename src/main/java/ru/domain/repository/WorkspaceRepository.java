@@ -80,7 +80,7 @@ public class WorkspaceRepository {
      * @return found workspace, null otherwise
      */
     public Optional<Workspace> findWorkspaceByName(String name) {
-        String sql = "SELECT id, name, bookedBy, bookingTime FROM coworking.\"workspaces-liquibase\" WHERE name = ?";
+        String sql = "SELECT id, name, \"bookedBy\", \"bookingTime\" FROM coworking.\"workspaces-liquibase\" WHERE name = ?";
         try (Connection connection = DatabaseUtil.getConnection();
             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, name);

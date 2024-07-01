@@ -13,7 +13,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
-import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -24,7 +23,6 @@ class UserRepositoryTest {
             .withDatabaseName("postgres")
             .withUsername("postgres")
             .withPassword("password")
-            .withExposedPorts(5432, 5432)
             .withInitScript("db/changelog/changeset/init_user.sql");
 
     private UserRepository userRepository;
@@ -46,13 +44,14 @@ class UserRepositoryTest {
              Statement statement = connection.createStatement()) {
             statement.execute("TRUNCATE TABLE coworking.\"users-liquibase\";");
         }
+
     }
 
     @Test
     void testSaveAndFindUser() throws SQLException {
         User user = new User("addUser", "add@test.com", "pw");
         userRepository.saveUser(user);
-        User foundUser = userRepository.findByUsername("adduser").orElseThrow();
+        User foundUser = userRepository.findByUsername("addUser").orElseThrow();
         assertNotNull(foundUser);
         assertEquals("addUser", foundUser.getName());
         assertEquals("add@test.com", foundUser.getEmail());
