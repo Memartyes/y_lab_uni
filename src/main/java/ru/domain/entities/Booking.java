@@ -18,7 +18,6 @@ public class Booking {
     private int workspaceId;
     private String bookedBy;
     private LocalDateTime bookingTime;
-    private ZoneId zoneId = ZoneId.systemDefault();
     private int bookingDurationHours; //WorkspaceConfig.BOOKING_DURATION_HOURS.getValue()
 
     public Booking(String bookedBy, LocalDateTime bookingTime, int bookingDurationHours) {
@@ -39,7 +38,7 @@ public class Booking {
      */
     public boolean isExpired() {
         LocalDateTime expirationTime = bookingTime.plusHours(bookingDurationHours);
-        return LocalDateTime.now(zoneId).isAfter(expirationTime);
+        return LocalDateTime.now().isAfter(expirationTime);
     }
 
     /**
