@@ -1,4 +1,4 @@
-package ru.domain.util;
+package ru.domain.util.jdbc;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

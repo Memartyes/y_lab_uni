@@ -14,28 +14,24 @@ import java.util.Map;
 public class MenuCommandExecutor {
     private final Map<String, Command> commandMap;
 
-    public MenuCommandExecutor(UserHandler userHandler, ConferenceRoomHandler conferenceRoomInput, WorkspaceHandler workspaceHandler) {
+    public MenuCommandExecutor(UserHandler userHandler, ConferenceRoomHandler conferenceRoomHandler, WorkspaceHandler workspaceHandler) {
         commandMap = new HashMap<>();
-        initializeCommands(userHandler, conferenceRoomInput, workspaceHandler);
+        initializeCommands(userHandler, conferenceRoomHandler, workspaceHandler);
     }
 
     /**
      * Инициализирует команды
      */
-    private void initializeCommands(UserHandler userHandler, ConferenceRoomHandler conferenceRoomInput, WorkspaceHandler workspaceHandler) {
+    private void initializeCommands(UserHandler userHandler, ConferenceRoomHandler conferenceRoomHandler, WorkspaceHandler workspaceHandler) {
         commandMap.put("1", new RegisterUserCommand(userHandler)); //Регистрируем пользователя
         commandMap.put("2", new LoginUserCommand(userHandler)); //Авторизируем пользователя
-        commandMap.put("3", new CreateConferenceRoomCommand(conferenceRoomInput)); //Создаем Конференц-зал
-        commandMap.put("4", new ViewConferenceRoomsCommand(conferenceRoomInput)); //Просматриваем доступные Конференц-залы и рабочие места
-        commandMap.put("5", new UpdateConferenceRoomCommand(conferenceRoomInput)); //Обновляем наименование Конференц-зала
-        commandMap.put("6", new DeleteConferenceRoomCommand(conferenceRoomInput)); //Удаляем конференц зал
-        commandMap.put("7", new AddWorkspaceCommand(workspaceHandler)); //Добавляем рабочие места
+        commandMap.put("3", new CreateConferenceRoomCommand(conferenceRoomHandler)); //Создаем Конференц-зал
+        commandMap.put("4", new ViewConferenceRoomsCommand(conferenceRoomHandler)); //Просматриваем доступные Конференц-залы и рабочие места
+        commandMap.put("5", new UpdateConferenceRoomCommand(conferenceRoomHandler)); //Обновляем наименование Конференц-зала
+        commandMap.put("6", new DeleteConferenceRoomCommand(conferenceRoomHandler)); //Удаляем конференц зал
+        commandMap.put("7", new AddWorkspaceCommand(conferenceRoomHandler)); //Добавляем рабочие места
         commandMap.put("8", new BookWorkspaceCommand(workspaceHandler)); //Бронируем рабочие места
-        commandMap.put("9", new ViewAvailableSlotsCommand(conferenceRoomInput)); //Просматриваем свободное время для записи на определенную дату
-        commandMap.put("10", new BookConferenceRoomCommand(conferenceRoomInput)); //Бронируем целый Конференц-зал на определенные дату и время
-        commandMap.put("11", new CancelWorkspaceBookingCommand(conferenceRoomInput)); //Отменяем бронирование рабочего места.
-        commandMap.put("12", new CancelConferenceRoomBookingCommand(conferenceRoomInput)); //Отменяем бронирование Конференц-зала
-        commandMap.put("13", new FilterBookingCommand(conferenceRoomInput)); //Фильтруем Конференц-зал по Date, User, Available Workspaces
+        commandMap.put("9", new CancelWorkspaceBookingCommand(workspaceHandler)); //Отменяем бронирование рабочего места.
         commandMap.put("0", new ExitCommand()); //Выход из консоли
     }
 

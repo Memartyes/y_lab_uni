@@ -1,0 +1,6 @@
+<aspectj>
+    <aspects>
+        <aspect name="ru.domain.aspect.UserActionAuditAspect"/>
+        <aspect name="ru.domain.aspect.MethodExecutionLoggingAspect"/>
+    </aspects>
+</aspectj>

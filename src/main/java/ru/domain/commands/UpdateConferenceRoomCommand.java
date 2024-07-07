@@ -3,14 +3,14 @@ package ru.domain.commands;
 import ru.domain.handlers.ConferenceRoomHandler;
 
 public class UpdateConferenceRoomCommand implements Command {
-    private ConferenceRoomHandler conferenceRoomInput;
+    private final ConferenceRoomHandler conferenceRoomHandler;
 
-    public UpdateConferenceRoomCommand(ConferenceRoomHandler conferenceRoomInput) {
-        this.conferenceRoomInput = conferenceRoomInput;
+    public UpdateConferenceRoomCommand(ConferenceRoomHandler conferenceRoomHandler) {
+        this.conferenceRoomHandler = conferenceRoomHandler;
     }
 
     @Override
     public void execute() {
-        conferenceRoomInput.handleUpdateConferenceRoom();
+        conferenceRoomHandler.updateConferenceRoom();
     }
 }

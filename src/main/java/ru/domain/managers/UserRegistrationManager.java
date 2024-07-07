@@ -1,34 +1,38 @@
 package ru.domain.managers;
 
+import ru.domain.dao.UserDAO;
 import ru.domain.entities.User;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 
 /**
  * Определяем класс для регистрации пользователя в системе.
  */
 public class UserRegistrationManager {
-    private Map<String, User> users;
+    private final UserDAO userDAO;
 
-    public UserRegistrationManager() {
-        this.users = new HashMap<>();
+    public UserRegistrationManager(UserDAO userDAO) {
+        this.userDAO = userDAO;
     }
 
     /**
      * Регистрируем нового пользователя.
      *
      * @param userName the username
+     * @param email the user email
      * @param password the user password
      */
-    public void registerUser(String userName, String password) {
-        if (users.containsKey(userName)) {
+    public void registerUser(String userName, String email, String password) {
+        if (userDAO.findUserByName(userName).isPresent()) {
             throw new IllegalArgumentException("User with username " + userName + " already exists");
         }
+        if (userDAO.findUserByEmail(email).isPresent()) {
+            throw new IllegalArgumentException("User with email " + email + " already exists");
+        }
 
-        User newUser = new User(userName, password);
-        users.put(userName, newUser);
+        User newUser = new User(userName, email, password);
+        userDAO.addUser(newUser);
     }
 
     /**
@@ -38,6 +42,36 @@ public class UserRegistrationManager {
      * @return the user
      */
     public Optional<User> getUser(String userName) {
-        return Optional.ofNullable(users.get(userName));
+        return userDAO.findUserByName(userName);
+    }
+
+    public Optional<User> getUserById(int id) {
+        return userDAO.findUserById(id);
+    }
+
+    /**
+     * Получаем всех пользователей.
+     * @return the list of users
+     */
+    public List<User> getAllUsers() {
+        return userDAO.findAllUsers();
+    }
+
+    /**
+     * Удаляем пользователя по его идентификатору.
+     *
+     * @param userId the user ID
+     */
+    public void deleteUser(int userId) {
+        userDAO.deleteUser(userId);
+    }
+
+    /**
+     * Обновляем информацию о пользователе.
+     *
+     * @param user the updated user object to perform update in database
+     */
+    public void updateUser(User user) {
+        userDAO.updateUser(user);
     }
 }

@@ -1,8 +1,10 @@
 services:
   mypostgres:
     image: postgres:latest
-    container_name: docker_test
+    container_name: mypostgres
     ports:
       - 5432:5432
     environment:
-      POSTGRES_PASSWORD: pw_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+#      POSTGRES_DB: dockercontainer

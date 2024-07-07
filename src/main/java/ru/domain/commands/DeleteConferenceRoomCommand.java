@@ -3,14 +3,14 @@ package ru.domain.commands;
 import ru.domain.handlers.ConferenceRoomHandler;
 
 public class DeleteConferenceRoomCommand implements Command {
-    private ConferenceRoomHandler conferenceRoomInput;
+    private final ConferenceRoomHandler conferenceRoomHandler;
 
-    public DeleteConferenceRoomCommand(ConferenceRoomHandler conferenceRoomInput) {
-        this.conferenceRoomInput = conferenceRoomInput;
+    public DeleteConferenceRoomCommand(ConferenceRoomHandler conferenceRoomHandler) {
+        this.conferenceRoomHandler = conferenceRoomHandler;
     }
 
     @Override
     public void execute() {
-        conferenceRoomInput.handleDeleteConferenceRoom();
+        conferenceRoomHandler.deleteConferenceRoom();
     }
 }

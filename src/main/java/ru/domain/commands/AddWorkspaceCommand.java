@@ -4,14 +4,14 @@ import ru.domain.handlers.ConferenceRoomHandler;
 import ru.domain.handlers.WorkspaceHandler;
 
 public class AddWorkspaceCommand implements Command {
-    private WorkspaceHandler workspaceHandler;
+    private final ConferenceRoomHandler conferenceRoomHandler;
 
-    public AddWorkspaceCommand(WorkspaceHandler workspaceHandler) {
-        this.workspaceHandler = workspaceHandler;
+    public AddWorkspaceCommand(ConferenceRoomHandler conferenceRoomHandler) {
+        this.conferenceRoomHandler = conferenceRoomHandler;
     }
 
     @Override
     public void execute() {
-        workspaceHandler.handleAddWorkspace();
+        conferenceRoomHandler.addWorkspaceToConferenceRoom();
     }
 }

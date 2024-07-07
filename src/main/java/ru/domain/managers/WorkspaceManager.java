@@ -2,8 +2,12 @@ package ru.domain.managers;
 
 import lombok.Getter;
 import ru.domain.config.WorkspaceConfig;
+import ru.domain.dao.BookingDAO;
+import ru.domain.dao.WorkspaceDAO;
+import ru.domain.entities.Booking;
 import ru.domain.entities.Workspace;
 import ru.domain.entities.ConferenceRoom;
+import ru.domain.util.BookingUtil;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -13,38 +17,14 @@ import java.util.Optional;
 /**
  * Определяем класс для управления рабочими местами
  */
+@Getter
 public class WorkspaceManager {
-    @Getter
-    private List<Workspace> workspaces;
+    private final WorkspaceDAO workspaceDAO;
+    private final BookingDAO bookingDAO;
 
-    public WorkspaceManager() {
-        this.workspaces = new ArrayList<>();
-    }
-
-    /**
-     * Определяем рабочие места по умолчанию.
-     *
-     * @param capacity the conference room capacity
-     */
-    public List<Workspace> initializeWorkspaces(int capacity) {
-        List<Workspace> workspaces = new ArrayList<>();
-        for (int i = 1; i <= capacity; i++) {
-            Workspace workspace = new Workspace(String.valueOf(i));
-            workspaces.add(workspace);
-        }
-        return workspaces;
-    }
-
-    /**
-     * Получаем рабочее место по его названию
-     *
-     * @param workspaceName the workspace name
-     * @return the workspace by name, or null otherwise
-     */
-    public Optional<Workspace> getWorkspace(String workspaceName) {
-        return workspaces.stream()
-                .filter(workspace -> workspace.getName().equals(workspaceName))
-                .findFirst();
+    public WorkspaceManager(WorkspaceDAO workspaceDAO, BookingDAO bookingDAO) {
+        this.workspaceDAO = workspaceDAO;
+        this.bookingDAO = bookingDAO;
     }
 
     /**
@@ -53,49 +33,150 @@ public class WorkspaceManager {
      * @param workspace the workspace to add
      */
     public void addWorkspace(Workspace workspace) {
-        if (getWorkspace(workspace.getName()).isPresent()) {
-            throw new IllegalArgumentException("Workspace with name " + workspace.getName() + " already exists.");
-        }
-        workspaces.add(workspace);
+        workspaceDAO.addWorkspace(workspace);
     }
 
     /**
-     * Отменяем бронирование рабочего места.
+     * Находим рабочее место по его ID.
      *
-     * @param workspaceName the workspace name
+     * @param id the workspace ID
+     * @return the workspace
      */
-    public void cancelBookingWorkspace(String workspaceName) {
-        Workspace workspace = getWorkspace(workspaceName).orElse(null);
-        if (workspace == null) {
-            throw new IllegalArgumentException("Workspace with name " + workspaceName + " not found.");
-        }
-        workspace.cancelBooking();
+    public Optional<Workspace> findWorkspaceById(int id) {
+        return workspaceDAO.findWorkspaceById(id);
     }
 
     /**
-     * Отменяем бронирование всех рабочих мест.
-     */
-    public void cancelBookingForAllWorkspaces() {
-        for (Workspace workspace : workspaces) {
-            workspace.cancelBooking();
-        }
-    }
-
-    /**
-     * Возвращаем количество доступных рабочих мест.
+     * Находим все рабочие места.
      *
-     * @return the available workspaces count
+     * @return the list of workspaces
      */
-    public int getAvailableWorkspaceCount() {
-        return (int) workspaces.stream().filter(workspace -> !workspace.isBooked()).count();
+    public List<Workspace> findAllWorkspaces() {
+        return workspaceDAO.findAllWorkspaces();
     }
 
     /**
-     * Проверяем Конференц-зал на наличие свободных рабочих мест.
+     * Обновляем рабочее место.
      *
-     * @return true if available at least one workspace, false otherwise
+     * @param workspace the workspace object to update
      */
-    public boolean hasAvailableWorkspaces() {
-        return workspaces.stream().anyMatch(workspace -> !workspace.isBooked());
+    public void updateWorkspace(Workspace workspace) {
+        workspaceDAO.updateWorkspace(workspace);
+    }
+
+    /**
+     * Удаляем рабочее место по его ID.
+     *
+     * @param id the workspace ID
+     */
+    public void deleteWorkspace(int id) {
+        workspaceDAO.deleteWorkspace(id);
+    }
+
+    /**
+     * Проверяем доступность рабочего места на определенное время.
+     *
+     * @param workspaceId the workspace ID
+     * @param bookingTime the booking time
+     * @return true if the workspace is available at the given time, false otherwise
+     */
+    public boolean isWorkspaceAvailable(int workspaceId, LocalDateTime bookingTime) {
+        return BookingUtil.isWithinWorkingHours(bookingTime) && BookingUtil.isWorkingDay(bookingTime) && workspaceDAO.isWorkspaceAvailable(workspaceId, bookingTime);
+    }
+
+    /**
+     * Бронируем рабочее место.
+     *
+     * @param workspaceId the workspace ID
+     * @param bookedBy the user who booked the workspace
+     * @param bookingTime the booking time
+     * @param durationHours the booking duration in hours
+     */
+    public void bookWorkspace(int workspaceId, String bookedBy, LocalDateTime bookingTime, int durationHours) {
+        if (isWorkspaceAvailable(workspaceId, bookingTime)) {
+            Booking booking = new Booking();
+            booking.setWorkspaceId(workspaceId);
+            booking.setBookedBy(bookedBy);
+            booking.setBookingTime(bookingTime);
+            booking.setBookingDurationHours(durationHours);
+            bookingDAO.addBooking(booking);
+        } else {
+            throw new IllegalArgumentException("Workspace is not available at the specified time");
+        }
+    }
+
+    /**
+     * Отменяем бронирование.
+     *
+     * @param bookingId the booking ID
+     */
+    public void cancelBooking(int bookingId) {
+        bookingDAO.deleteBooking(bookingId);
+    }
+
+    /**
+     * Находим бронирование по его ID.
+     * @param bookingId
+     * @return
+     */
+    public Optional<Booking> findBookingById(int bookingId) {
+        return bookingDAO.findBookingById(bookingId);
+    }
+
+    /**
+     * Находим бронирования по ID рабочего места.
+     *
+     * @param workspaceId the workspace ID
+     * @return the list of bookings by workspace ID
+     */
+    public List<Booking> findBookingsByWorkspaceId(int workspaceId) {
+        return bookingDAO.findBookingsByWorkspaceId(workspaceId);
+    }
+
+    /**
+     * Находим бронирования по имени пользователя.
+     *
+     * @param bookedBy the user who booked the workspace
+     * @return the list of bookings by user's name
+     */
+    public List<Booking> findBookingsByUser(String bookedBy) {
+        return bookingDAO.findBookingsByUser(bookedBy);
+    }
+
+    /**
+     * Находим бронирования на определенную дату.
+     *
+     * @param date the booking date
+     * @return the list of bookings on the specified date
+     */
+    public List<Booking> findBookingsByDate(LocalDateTime date) {
+        return bookingDAO.findBookingsByDate(date);
+    }
+
+    /**
+     * Отменяем бронирования по имени пользователя.
+     *
+     * @param bookedBy the user who booked the workspace
+     */
+    public void cancelBookingsByUser(String bookedBy) {
+        bookingDAO.cancelBookingsByUser(bookedBy);
+    }
+
+    /**
+     * Находим все бронирования.
+     *
+     * @return
+     */
+    public List<Booking> findAllBookings() {
+        return bookingDAO.findAllBookings();
+    }
+
+    /**
+     * Обновляем бронирование.
+     *
+     * @param booking
+     */
+    public void updateBooking(Booking booking) {
+        bookingDAO.updateBooking(booking);
     }
 }

@@ -5,13 +5,17 @@ import ru.domain.entities.User;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Интерфейс для дальнейшей имплементации User Data Access Object
+ */
 public interface UserDAO {
+
     /**
-     * Создаем и добавляем нового пользователя в базу данных.
+     * Добавляем нового пользователя в базу данных.
      *
      * @param user the user object to create and add
      */
-    void createUser(User user);
+    void addUser(User user);
 
     /**
      * Находим пользователя по его ID
@@ -47,7 +51,7 @@ public interface UserDAO {
     /**
      * Обновляем информацию о пользователе в базе данных.
      *
-     * @param user the user to update
+     * @param user the updated user object to perform update in database
      */
     void updateUser(User user);
 

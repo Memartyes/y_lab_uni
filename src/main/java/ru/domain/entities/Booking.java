@@ -1,5 +1,6 @@
 package ru.domain.entities;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import ru.domain.config.WorkspaceConfig;
@@ -11,9 +12,10 @@ import java.time.format.DateTimeFormatter;
 /**
  * Класс представляет бронирование рабочего места.
  */
-@Getter
-@Setter
+@Data
 public class Booking {
+    private int id;
+    private int workspaceId;
     private String bookedBy;
     private LocalDateTime bookingTime;
     private ZoneId zoneId = ZoneId.systemDefault();
@@ -27,6 +29,8 @@ public class Booking {
         this.bookingTime = bookingTime;
         this.bookingDurationHours = bookingDurationHours;
     }
+
+    public Booking() {}
 
     /**
      * Проверяет, истекло ли время бронирования.

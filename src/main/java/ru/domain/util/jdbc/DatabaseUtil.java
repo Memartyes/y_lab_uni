@@ -1,4 +1,4 @@
-package ru.domain.util;
+package ru.domain.util.jdbc;
 
 import java.sql.*;
 import java.util.Properties;
@@ -10,6 +10,15 @@ public class DatabaseUtil {
     private static String URL = ConfigUtil.getProperty("database.url");
     private static String USER = ConfigUtil.getProperty("database.username");
     private static String PASSWORD = ConfigUtil.getProperty("database.password");
+
+    static {
+        try {
+            Class.forName("org.postgresql.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            throw new RuntimeException("PostgreSQL Driver not found", e);
+        }
+    }
 
     // Сеттеры для работы с тестконтейнерами
     public static void setUrl(String newUrl) {

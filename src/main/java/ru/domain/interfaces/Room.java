@@ -9,54 +9,11 @@ import java.util.Optional;
 public interface Room {
 
     /**
-     * Получаем рабочее место по его названию.
-     *
-     * @param workspaceName the workspace name
-     * @return the workspace by name, or null otherwise
-     */
-    Optional<Workspace> getWorkspace(String workspaceName);
-
-    /**
      * Добавляем рабочее место.
      *
      * @param workspace the workspace to add
      */
     void addWorkspace(Workspace workspace);
-
-    /**
-     * Возвращаем количество доступных рабочих мест.
-     *
-     * @return the count of available workspaces
-     */
-    int getAvailableWorkspaceCount();
-
-    /**
-     * Бронируем все рабочие места для пользователя
-     *
-     * @param userName the username
-     * @param bookingTime the booking time
-     */
-    void bookAllWorkspaces(String userName, LocalDateTime bookingTime);
-
-    /**
-     * Отменяем бронирование рабочего места
-     *
-     * @param workspaceName the workspace name
-     */
-    void cancelBookingForWorkspace(String workspaceName);
-
-    /**
-     * Проверяем доступность рабочего места по времени.
-     *
-     * @param dateTime the date time
-     * @return true if the date time is available for book, false otherwise
-     */
-    boolean isBookingTimeAvailable(LocalDateTime dateTime);
-
-    /**
-     * Отменяем бронирования всех рабочих мест.
-     */
-    void cancelBookingForAllWorkspaces();
 
     /**
      * Проверяем наличие бронирования на указанную дату.

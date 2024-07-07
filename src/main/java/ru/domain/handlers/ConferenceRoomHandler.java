@@ -18,259 +18,142 @@ import java.util.List;
  * Определячем класс для обработки логики Конференц-зала.
  */
 public class ConferenceRoomHandler {
-    private UserInput conferenceRoomInput;
-    private UserOutput conferenceRoomOutput;
-    private ConferenceRoomManager conferenceRoomManager;
-    private WorkspaceManager workspaceManager;
+    private final UserInput userInput;
+    private final UserOutput userOutput;
+    private final ConferenceRoomManager conferenceRoomManager;
+    private final WorkspaceManager workspaceManager;
 
-    /**
-     *  Конструктор для создания класса обработки запросов Конференц-залов при работе с консолью.
-     *
-     * @param conferenceRoomInput the conference room input
-     * @param conferenceRoomOutput the conference room output
-     * @param conferenceRoomManager the conference room manager
-     * @param workspaceManager the workspace manager
-     */
-    public ConferenceRoomHandler(UserInput conferenceRoomInput, UserOutput conferenceRoomOutput, ConferenceRoomManager conferenceRoomManager, WorkspaceManager workspaceManager) {
-        this.conferenceRoomInput = conferenceRoomInput;
-        this.conferenceRoomOutput = conferenceRoomOutput;
+    public ConferenceRoomHandler(UserInput userInput, UserOutput userOutput, ConferenceRoomManager conferenceRoomManager, WorkspaceManager workspaceManager) {
+        this.userInput = userInput;
+        this.userOutput = userOutput;
         this.conferenceRoomManager = conferenceRoomManager;
         this.workspaceManager = workspaceManager;
     }
 
     /**
-     * Парсинг даты из строки.
-     *
-     * @param dateStr the date string
-     * @return LocalDate the local date time
+     * Создаем новый конференц-зал.
      */
-    private LocalDate parseDate(String dateStr) throws DateTimeParseException {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        return LocalDate.parse(dateStr, formatter);
+    public void createConferenceRoom() {
+        userOutput.println("Enter conference room name:");
+        String name = userInput.readLine();
+        userOutput.println("Enter conference room capacity:");
+        int capacity = Integer.parseInt(userInput.readLine());
+
+        ConferenceRoom conferenceRoom = new ConferenceRoom(name, capacity);
+        conferenceRoomManager.addConferenceRoom(conferenceRoom);
+
+        userOutput.println("Conference room " + name + " created with capacity " + capacity);
     }
 
     /**
-     * Парсинг даты и времени из строки.
-     *
-     * @param dateTimeStr the date time string
-     * @return LocalDateTime the local date time
+     * Отображаем все конференц-залы.
      */
-    private LocalDateTime parseDateTime(String dateTimeStr) throws DateTimeParseException {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        return LocalDateTime.parse(dateTimeStr, formatter);
-    }
-
-    /**
-     * Обработка запроса на создание нового Конференц-зала.
-     */
-    public void handleCreateConferenceRoom() {
-        String roomName = conferenceRoomInput.readLine("Enter Conference Room Name:");
-
-        try {
-            conferenceRoomManager.addConferenceRoom(roomName);
-            conferenceRoomOutput.println("Conference Room created successfully.");
-        } catch (IllegalArgumentException e) {
-            conferenceRoomOutput.println("Error creating conference room: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Обрабатываем запрос на смотр всех Конференц-зал'ов и доступных рабочих мест.
-     */
-    public void handleViewConferenceRooms() {
-        conferenceRoomOutput.println("Available Conference Rooms:");
-
-        for (ConferenceRoom room : conferenceRoomManager.getConferenceRooms().values()) {
-            conferenceRoomOutput.println("Conference Room name: " + room.getName() + "\nAvailable Workspaces: " + room.getAvailableWorkspaceCount());
-
-            for (Workspace workspace : room.getWorkspaces()) {
-                if (workspace.isBooked()) {
-                    conferenceRoomOutput.println(" Name: " + workspace.getName() + " - Booked by Username: " + workspace.getBookedBy()  + " from " + workspace.getBookingTime() + " to " + workspace.getBookingEndTime());
-                } else {
-                    conferenceRoomOutput.println(" Name: " + workspace.getName() + " - Available to book");
+    public void viewConferenceRooms() {
+        List<ConferenceRoom> conferenceRooms = conferenceRoomManager.findAllConferenceRooms();
+        if (conferenceRooms.isEmpty()) {
+            userOutput.println("No conference rooms available.");
+        } else {
+            userOutput.println("Available conference rooms:");
+            for (ConferenceRoom conferenceRoom : conferenceRooms) {
+                userOutput.println("ID: " + conferenceRoom.getId() + ", Name: " + conferenceRoom.getName() + ", Capacity: " + conferenceRoom.getCapacity());
+                List<Workspace> workspaces = conferenceRoomManager.findWorkspacesByConferenceRoomId(conferenceRoom.getId());
+                for (Workspace workspace : workspaces) {
+                    userOutput.println("  Workspace ID: " + workspace.getId() + ", Name: " + workspace.getName());
                 }
             }
         }
     }
 
     /**
-     * Обрабатываем запрос на изменение ID Конференц-зала
+     * Обновляем информацию о конференц-зале.
      */
-    public void handleUpdateConferenceRoom() {
-        String oldRoomName = conferenceRoomInput.readLine("Enter Current Conference Room Name:");
-        String newRoomName = conferenceRoomInput.readLine("Enter New Conference Room Name:");
+    public void updateConferenceRoom() {
+        userOutput.println("Enter conference room ID to update:");
+        int id = Integer.parseInt(userInput.readLine());
+        userOutput.println("Enter new conference room name:");
+        String name = userInput.readLine();
+        userOutput.println("Enter new conference room capacity:");
+        int capacity = Integer.parseInt(userInput.readLine());
 
-        try {
-            conferenceRoomManager.updateConferenceRoomName(oldRoomName, newRoomName);
-            conferenceRoomOutput.println("Conference Room updated successfully.");
-        } catch (IllegalArgumentException e) {
-            conferenceRoomOutput.println("Error: " + e.getMessage());
-        }
+        ConferenceRoom conferenceRoom = new ConferenceRoom(name, capacity);
+        conferenceRoom.setId(id);
+        conferenceRoomManager.updateConferenceRoom(conferenceRoom);
+
+        userOutput.println("Conference room " + id + " updated.");
     }
 
     /**
-     * Обрабатываем запрос на удаление Конференц-зала
+     * Удаляем конференц-зал по его ID.
      */
-    public void handleDeleteConferenceRoom() {
-        String conferenceRoomName = conferenceRoomInput.readLine("Enter Conference Room Name:");
-
-        try {
-            conferenceRoomManager.deleteConferenceRoom(conferenceRoomName);
-            conferenceRoomOutput.println("Conference Room " + conferenceRoomName + " deleted successfully.");
-        } catch (IllegalArgumentException e) {
-            conferenceRoomOutput.println("Error: " + e.getMessage());
-        }
+    public void deleteConferenceRoom() {
+        userOutput.println("Enter conference room ID to delete:");
+        int id = Integer.parseInt(userInput.readLine());
+        conferenceRoomManager.deleteConferenceRoom(id);
+        userOutput.println("Conference room " + id + " deleted.");
     }
 
     /**
-     * Обрабатываем запрос на показ доступных слотов в Конференц-залах
+     * Добавляем рабочее место в конференц-зал.
      */
-    public void handleViewAvailableSlots() {
-        String conferenceRoomName = conferenceRoomInput.readLine("Enter Conference Room Name:");
-        String dateInput = conferenceRoomInput.readLine("Enter Booking Date (yyyy-MM-dd):");
+    public void addWorkspaceToConferenceRoom() {
+        int conferenceRoomId = Integer.parseInt(userInput.readLine("Enter Conference Room ID:"));
+        String workspaceName = userInput.readLine("Enter Workspace Name:");
 
+        Workspace workspace = new Workspace(workspaceName);
+        conferenceRoomManager.addWorkspaceToConferenceRoom(conferenceRoomId, workspace);
+
+        userOutput.println("Workspace " + workspaceName + " added to conference room ID: " + conferenceRoomId);
+    }
+
+    /**
+     * Находим конференц-залы с бронированиями на указанную дату.
+     */
+    public void findRoomsByDate() {
+        userOutput.println("Enter date 'yyyy-MM-dd':");
+        String dateInput = userInput.readLine();
         try {
-            LocalDate date = parseDate(dateInput);
-            List<String> availableSlots = conferenceRoomManager.getAvailableSlots(conferenceRoomName, date);
-            conferenceRoomOutput.println("Available slots on " + date + " are:");
-            for (String slot : availableSlots) {
-                conferenceRoomOutput.println("  " + slot);
+            LocalDate date = LocalDate.parse(dateInput, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            List<ConferenceRoom> conferenceRooms = conferenceRoomManager.findRoomsByDate(date);
+            if (conferenceRooms.isEmpty()) {
+                userOutput.println("No conference rooms with bookings on this date.");
+            } else {
+                for (ConferenceRoom conferenceRoom : conferenceRooms) {
+                    userOutput.println("ID: " + conferenceRoom.getId() + ", Name: " + conferenceRoom.getName() + ", Capacity: " + conferenceRoom.getCapacity());
+                }
             }
         } catch (DateTimeParseException e) {
-            conferenceRoomOutput.println("Error: Invalid date format. Please use 'yyyy-MM-dd'.");
-        } catch (IllegalArgumentException e) {
-            conferenceRoomOutput.println("Error: " + e.getMessage());
+            userOutput.println("Error: Invalid date format. Please use 'yyyy-MM-dd'.");
         }
     }
 
     /**
-     * Метод для обработки запроса на бронирование всего Конференц-зала
+     * Находим конференц-залы с бронированиями пользователем.
      */
-    public void handleBookConferenceRoom() {
-        String conferenceRoomName = conferenceRoomInput.readLine("Enter Conference Room Name:");
-        String userName = conferenceRoomInput.readLine("Enter User Name:");
-        String bookingTimeInput = conferenceRoomInput.readLine("Enter Booking Date and Time (yyyy-MM-dd HH:mm):");
+    public void findRoomsByUser() {
+        userOutput.println("Enter Username:");
+        String userName = userInput.readLine();
 
-        try {
-            LocalDateTime bookingTime = parseDateTime(bookingTimeInput);
-            conferenceRoomManager.bookWholeConferenceRoom(conferenceRoomName, userName, bookingTime);
-            conferenceRoomOutput.println("Conference room booked successfully.");
-        } catch (IllegalArgumentException e) {
-            conferenceRoomOutput.println("Error: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Метод для обработки запрооса на бронирования Конференц-зала на весь рабочий день.
-     */
-    public void handleBookConferenceRoomForWholeDay() {
-        String conferenceRoomName = conferenceRoomInput.readLine("Enter Conference Room Name:");
-        String userName = conferenceRoomInput.readLine("Enter User Name:");
-        String bookingDate = conferenceRoomInput.readLine("Enter Booking Date (yyyy-MM-dd):");
-
-        LocalDate date;
-        try {
-            date = parseDate(bookingDate);
-        } catch (Exception e) {
-            conferenceRoomOutput.println("Invalid date format.");
-            return;
-        }
-
-        int startHour = WorkspaceConfig.START_HOUR.getValue();
-        int endHour = WorkspaceConfig.END_HOUR.getValue();
-        int bookingDuration = WorkspaceConfig.BOOKING_DURATION_HOURS.getValue();
-
-        LocalDateTime bookingTime = date.atTime(startHour, 0);
-        while (bookingTime.getHour() < endHour) {
-            try {
-                conferenceRoomManager.bookWholeConferenceRoom(conferenceRoomName, userName, bookingTime);
-                bookingTime = bookingTime.plusHours(bookingDuration);
-            } catch (IllegalArgumentException e) {
-                conferenceRoomOutput.println("Error: " + e.getMessage());
-                return;
+        List<ConferenceRoom> conferenceRooms = conferenceRoomManager.findRoomsByUser(userName);
+        if (conferenceRooms.isEmpty()) {
+            userOutput.println("No conference rooms with bookings by this user.");
+        } else {
+            for (ConferenceRoom conferenceRoom : conferenceRooms) {
+                userOutput.println("ID: " + conferenceRoom.getId() + ", Name: " + conferenceRoom.getName() + ", Capacity: " + conferenceRoom.getCapacity());
             }
         }
-        conferenceRoomOutput.println("Conference room booked for the whole day successfully.");
     }
 
     /**
-     * Обработка запроса на отмену бронирования рабочих мест
+     * Находим конференц-залы с доступными рабочими местами.
      */
-    public void handleCancelWorkspaceBooking() {
-        String conferenceRoomName = conferenceRoomInput.readLine("Enter Conference Room Name:");
-        String workspaceName = conferenceRoomInput.readLine("Enter Workspace Name:");
-
-        try {
-            conferenceRoomManager.cancelBookingForWorkspace(conferenceRoomName, workspaceName);
-            conferenceRoomOutput.println("Workspace canceled successfully.");
-        } catch (IllegalArgumentException e) {
-            conferenceRoomOutput.println("Error: " + e.getMessage());
+    public void findRoomsWithAvailableWorkspaces() {
+        List<ConferenceRoom> conferenceRooms = conferenceRoomManager.findRoomsWithAvailableWorkspaces();
+        if (conferenceRooms.isEmpty()) {
+            userOutput.println("No conference rooms with available workspaces.");
+        } else {
+            for (ConferenceRoom conferenceRoom : conferenceRooms) {
+                userOutput.println("ID: " + conferenceRoom.getId() + ", Name: " + conferenceRoom.getName() + ", Capacity: " + conferenceRoom.getCapacity());
+            }
         }
-    }
-
-    /**
-     * Обработка запроса на отмену бронирования Конференц-зала
-     */
-    public void handleCancelConferenceRoomBooking() {
-        String conferenceRoomName = conferenceRoomInput.readLine("Enter Conference Room Name:");
-
-        try {
-            conferenceRoomManager.cancelBookingForAllWorkspaces(conferenceRoomName);
-            conferenceRoomOutput.println("Conference Room booking canceled successfully.");
-        } catch (IllegalArgumentException e) {
-            conferenceRoomOutput.println("Error: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Фильтруем конференц залы по выбору пользователя.
-     * (1 - Date, 2 - User, 3 - Available workspaces).
-     */
-    public void handleFilterBooking() {
-        String choice = conferenceRoomInput.readLine("Filter conference rooms by:\n'1' - Date\n'2' - User\n'3' - Available Workspaces\nChoose your option:");
-
-        switch (choice) {
-            case "1":
-                filterByDate();
-                break;
-            case "2":
-                filterByUser();
-                break;
-            case "3":
-                filterByAvailableWorkspaces();
-            default:
-                conferenceRoomOutput.println("Invalid option.");
-        }
-    }
-
-    /**
-     * Фильтруем Конференц-залы по дате.
-     */
-    private void filterByDate() {
-        String dateInput = conferenceRoomInput.readLine("Enter Booking Date (yyyy-MM-dd):");
-        try {
-            LocalDate date = parseDate(dateInput);
-            List<String> results = conferenceRoomManager.filterByDate(date);
-            conferenceRoomOutput.printList(results);
-        } catch (DateTimeParseException e) {
-            conferenceRoomOutput.println("Error: Invalid date format. Please use 'yyyy-MM-dd'.");
-        }
-    }
-
-    /**
-     * Фильтруем Конференц-залы по пользователю.
-     */
-    private void filterByUser() {
-        String userId = conferenceRoomInput.readLine("Enter User Name:");
-        List<String> results = conferenceRoomManager.filterByUser(userId);
-        conferenceRoomOutput.printList(results);
-    }
-
-    /**
-     * Фильтруем Конференц-залы по доступным рабочим местам.
-     */
-    private void filterByAvailableWorkspaces() {
-        List<String> results = conferenceRoomManager.filterByAvailableWorkspaces();
-        conferenceRoomOutput.printList(results);
     }
 }

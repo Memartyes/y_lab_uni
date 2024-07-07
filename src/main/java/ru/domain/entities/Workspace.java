@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import ru.domain.interfaces.Bookable;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -18,10 +19,6 @@ public class Workspace implements Bookable {
     private int id;
     private String name;
     private List<Booking> bookings;
-
-    private boolean booked; //TODO: delete after database refactoring.
-    private String bookedBy; //TODO: delete after database refactoring.
-    private LocalDateTime bookingTime; //TODO: delete after database refactoring.
 
     /**
      * Конструктор для создания нового рабочего места.
@@ -83,13 +80,41 @@ public class Workspace implements Bookable {
     }
 
     /**
+     * Проверяет, есть ли бронирования на указанную дату.
+     *
+     * @param date the date to check
+     * @return true if there are bookings on the specified date, false otherwise
+     */
+    public boolean hasBookingOnDate(LocalDate date) {
+        return bookings.stream().anyMatch(booking -> booking.getBookingTime().toLocalDate().equals(date));
+    }
+
+    /**
+     * Проверяет, есть ли бронирования пользователем.
+     *
+     * @param userName the user's name
+     * @return true if the user has bookings, false otherwise
+     */
+    public boolean hasBookingByUser(String userName) {
+        return bookings.stream().anyMatch(booking -> booking.getBookedBy().equals(userName));
+    }
+
+    /**
+     * Проверяет, доступно ли рабочее место для бронирования.
+     *
+     * @return true if the workspace is available, false otherwise
+     */
+    public boolean isAvailable() {
+        return bookings.isEmpty();
+    }
+
+    /**
      * Возвращаем время окончания забронированного рабочего места
      *
      * @return the booking end time as string
      */
-        public String getBookingEndTime() {
+    public String getBookingEndTime() {
         return bookings.stream()
-                .filter(booking -> booking.getBookingTime().equals(bookingTime))
                 .map(Booking::getFormattedEndTime)
                 .findFirst()
                 .orElse(null);

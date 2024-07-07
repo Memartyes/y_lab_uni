@@ -3,14 +3,14 @@ package ru.domain.commands;
 import ru.domain.handlers.UserHandler;
 
 public class RegisterUserCommand implements Command {
-    private UserHandler userInput;
+    private final UserHandler userHandler;
 
-    public RegisterUserCommand(UserHandler userInput) {
-        this.userInput = userInput;
+    public RegisterUserCommand(UserHandler userHandler) {
+        this.userHandler = userHandler;
     }
 
     @Override
     public void execute() {
-        userInput.handleUserRegistration();
+        userHandler.handleUserRegistration();
     }
 }

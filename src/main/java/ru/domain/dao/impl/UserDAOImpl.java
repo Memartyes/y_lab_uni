@@ -2,11 +2,10 @@ package ru.domain.dao.impl;
 
 import ru.domain.dao.UserDAO;
 import ru.domain.entities.User;
-import ru.domain.util.DatabaseUtil;
+import ru.domain.util.jdbc.DatabaseUtil;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,7 +18,7 @@ public class UserDAOImpl implements UserDAO {
      * @param user the user object to create and add
      */
     @Override
-    public void createUser(User user) {
+    public void addUser(User user) {
         String sql = "INSERT INTO " + TABLE_NAME + " (name, email, password) VALUES (?, ?, ?)";
         try (Connection connection = DatabaseUtil.getConnection();
         PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -162,7 +161,7 @@ public class UserDAOImpl implements UserDAO {
     /**
      * Обновляем информацию о пользователе в базе данных.
      *
-     * @param user the user to update
+     * @param user the updated user object to perform update in database
      */
     @Override
     public void updateUser(User user) {

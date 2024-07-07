@@ -14,10 +14,10 @@ import java.util.Optional;
  * Определяем класс для регистрации и аутентификации пользователя.
  */
 public class UserHandler {
-    private UserInput userInput;
-    private UserOutput userOutput;
-    private UserRegistrationManager registrationManager;
-    private UserAuthenticationManager authenticationManager;
+    private final UserInput userInput;
+    private final UserOutput userOutput;
+    private final UserRegistrationManager registrationManager;
+    private final UserAuthenticationManager authenticationManager;
 
     public UserHandler(UserInput userInput, UserOutput userOutput, UserRegistrationManager registrationManager, UserAuthenticationManager authenticationManager) {
         this.userInput = userInput;
@@ -31,10 +31,11 @@ public class UserHandler {
      */
     public void handleUserRegistration() {
         String userName = userInput.readLine("Enter Username:");
+        String email = userInput.readLine("Enter Email:");
         String password = userInput.readLine("Enter Password:");
 
         try {
-            registrationManager.registerUser(userName, password);
+            registrationManager.registerUser(userName, email, password);
             userOutput.println("User registered successfully: " + userName);
         } catch (IllegalArgumentException e) {
             userOutput.println("Registration error: " + e.getMessage());
@@ -59,6 +60,39 @@ public class UserHandler {
             }
         } catch (Exception e) {
             userOutput.println("An unexpected error occurred during login: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Обрабатывает запрос на обновление информации о пользователе.
+     */
+    public void handleUpdateUser() {
+        String userName = userInput.readLine("Enter Username to update:");
+        Optional<User> userOpt = registrationManager.getUser(userName);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            String newEmail = userInput.readLine("Enter new Email:");
+            String newPassword = userInput.readLine("Enter new Password:");
+            user.setEmail(newEmail);
+            user.setPassword(newPassword);
+            registrationManager.updateUser(user);
+            userOutput.println("User updated successfully: " + userName);
+        } else {
+            userOutput.println("User not found: " + userName);
+        }
+    }
+
+    /**
+     * Обрабатывает запрос на удаление пользователя.
+     */
+    public void handleDeleteUser() {
+        String userName = userInput.readLine("Enter Username to delete:");
+        Optional<User> userOpt = registrationManager.getUser(userName);
+        if (userOpt.isPresent()) {
+            registrationManager.deleteUser(userOpt.get().getId());
+            userOutput.println("User deleted successfully: " + userName);
+        } else {
+            userOutput.println("User not found: " + userName);
         }
     }
 }

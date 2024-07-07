@@ -13,11 +13,10 @@ import java.util.Optional;
  */
 @Getter
 public class UserAuthenticationManager {
-    private Map<String, User> users;
-//    private final UserDAO userDAO;
+    private final UserDAO userDAO;
 
-    public UserAuthenticationManager() {
-        this.users = new HashMap<>();
+    public UserAuthenticationManager(UserDAO userDAO) {
+        this.userDAO = userDAO;
     }
 
     /**
@@ -28,9 +27,9 @@ public class UserAuthenticationManager {
      * @return the logged-in user
      */
     public Optional<User> loginUser(String userName, String password) {
-        User user = users.get(userName);
-        if (user != null && user.getPassword().equals(password)) {
-            return Optional.of(user);
+        Optional<User> user = userDAO.findUserByName(userName);
+        if (user.isPresent() && user.get().getPassword().equals(password)) {
+            return user;
         }
         return Optional.empty();
     }

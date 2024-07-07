@@ -6,9 +6,9 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
         logicalFilePath="db/changelog/changelog.xml">
-        <changeSet id="000-create-schema" author="Memartyes">
-            <sql dbms="postgresql">
-                CREATE SCHEMA IF NOT EXISTS coworking;
-            </sql>
+        <changeSet id="002-create-sequences" author="Memartyes">
+            <createSequence sequenceName="user_id_seq" startValue="1" incrementBy="1"/>
+            <createSequence sequenceName="workspace_id_seq" startValue="1" incrementBy="1"/>
+            <createSequence sequenceName="conference_room_id_seq" startValue="1" incrementBy="1"/>
         </changeSet>
 </databaseChangeLog>
