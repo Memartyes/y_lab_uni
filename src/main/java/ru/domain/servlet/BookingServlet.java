@@ -1,6 +1,7 @@
 package ru.domain.servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -35,6 +36,7 @@ public class BookingServlet extends HttpServlet {
     public void init() throws ServletException {
         this.workspaceManager = new WorkspaceManager(new WorkspaceDAOImpl(), new BookingDAOImpl());
         this.objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         this.validator = factory.getValidator();
     }
