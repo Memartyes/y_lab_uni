@@ -198,6 +198,9 @@ public class ConferenceRoomDAOImpl implements ConferenceRoomDAO {
                     Workspace workspace = new Workspace(resultSet.getString("name"));
                     workspace.setId(resultSet.getInt("id"));
 
+                    List<Booking> bookings = findBookingsByWorkspaceId(workspace.getId());
+                    workspace.setBookings(bookings);
+
                     workspaces.add(workspace);
                 }
             }
@@ -216,7 +219,7 @@ public class ConferenceRoomDAOImpl implements ConferenceRoomDAO {
     @Override
     public List<Booking> findBookingsByWorkspaceId(int workspaceId) {
         List<Booking> bookings = new ArrayList<>();
-        String sql = "SELECT * FROM coworking.\"bookings-liquibase\" WHERE \"workspace_id\" = ?";
+        String sql = "SELECT * FROM " + BOOKING_TABLE_NAME + " WHERE \"workspace_id\" = ?";
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setInt(1, workspaceId);
