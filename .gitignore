@@ -1,5 +1,6 @@
 .idea
 *.iml
 *.class
+*.txt
 /out/
 target

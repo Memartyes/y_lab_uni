@@ -22,8 +22,6 @@ public class ConfigUtil {
             }
             properties.load(inputStream);
         } catch (Exception e) {
-//            e.printStackTrace();
-//            throw new ExceptionInInitializerError(e);
             logger.error("Failed to load configuration properties.", e);
         }
     }
