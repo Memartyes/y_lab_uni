@@ -1,21 +1,81 @@
 package ru.domain.dao.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 import ru.domain.dao.ConferenceRoomDAO;
 import ru.domain.entities.Booking;
 import ru.domain.entities.ConferenceRoom;
 import ru.domain.entities.Workspace;
-import ru.domain.util.jdbc.DatabaseUtil;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public class ConferenceRoomDAOImpl implements ConferenceRoomDAO {
     private static final String CONFERENCE_TABLE_NAME = "coworking.\"conference_rooms-liquibase\"";
     private static final String WORKSPACE_TABLE_NAME = "coworking.\"workspaces-liquibase\"";
     private static final String BOOKING_TABLE_NAME = "coworking.\"bookings-liquibase\"";
+
+    private final JdbcTemplate jdbcTemplate;
+
+    /**
+     * Конструктор с внедрением зависимости DataSource.
+     *
+     * @param dataSource источник данных
+     */
+    @Autowired
+    public ConferenceRoomDAOImpl(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+    /**
+     * Преобразовуем строки результата SQL-запроса в объект ConferenceRoom.
+     */
+    private static final class ConferenceRoomRowMapper implements RowMapper<ConferenceRoom> {
+        @Override
+        public ConferenceRoom mapRow(ResultSet rs, int rowNum) throws SQLException {
+            ConferenceRoom conferenceRoom = new ConferenceRoom();
+            conferenceRoom.setId(rs.getInt("id"));
+            conferenceRoom.setName(rs.getString("name"));
+            conferenceRoom.setCapacity(rs.getInt("capacity"));
+            return conferenceRoom;
+        }
+    }
+
+    /**
+     * МПреобразовуем строки результата SQL-запроса в объект Workspace.
+     */
+    private static final class WorkspaceRowMapper implements RowMapper<Workspace> {
+        @Override
+        public Workspace mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Workspace workspace = new Workspace();
+            workspace.setId(rs.getInt("id"));
+            workspace.setName(rs.getString("name"));
+            return workspace;
+        }
+    }
+
+    /**
+     * Преобразовуем строки результата SQL-запроса в объект Booking.
+     */
+    private static final class BookingRowMapper implements RowMapper<Booking> {
+        @Override
+        public Booking mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Booking booking = new Booking();
+            booking.setId(rs.getInt("id"));
+            booking.setWorkspaceId(rs.getInt("workspace_id"));
+            booking.setBookedBy(rs.getString("booked_by"));
+            booking.setBookingTime(rs.getTimestamp("booking_time").toLocalDateTime());
+            booking.setBookingDurationHours(rs.getInt("duration_hours"));
+            return booking;
+        }
+    }
 
     /**
      * Добавляем новый конференц-зал в базу данных.
@@ -24,29 +84,10 @@ public class ConferenceRoomDAOImpl implements ConferenceRoomDAO {
      */
     @Override
     public void addConferenceRoom(ConferenceRoom conferenceRoom) {
-        String sql = "INSERT INTO " + CONFERENCE_TABLE_NAME + " (name, capacity) VALUES (?, ?)";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            preparedStatement.setString(1, conferenceRoom.getName());
-            preparedStatement.setInt(2, conferenceRoom.getCapacity());
-            int affectedRows = preparedStatement.executeUpdate();
-
-            if (affectedRows == 0) {
-                throw new SQLException("Creating conference room failed, no rows affected.");
-            }
-
-            try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    conferenceRoom.setId(generatedKeys.getInt(1));
-                } else {
-                    throw new SQLException("Creating conference room failed, no ID obtained.");
-                }
-            }
-
-            System.out.println("Created conference room: " + conferenceRoom.getName());
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
+        String sql = "INSERT INTO " + CONFERENCE_TABLE_NAME + " (name, capacity) VALUES (?, ?) RETURNING id";
+        Integer newId = jdbcTemplate.queryForObject(sql, new Object[]{conferenceRoom.getName(), conferenceRoom.getCapacity()}, Integer.class);
+        if (newId != null) {
+            conferenceRoom.setId(newId);
         }
     }
 
@@ -59,26 +100,8 @@ public class ConferenceRoomDAOImpl implements ConferenceRoomDAO {
     @Override
     public Optional<ConferenceRoom> findConferenceRoomById(int id) {
         String sql = "SELECT * FROM " + CONFERENCE_TABLE_NAME + " WHERE id = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setInt(1, id);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    ConferenceRoom conferenceRoom = new ConferenceRoom();
-                    conferenceRoom.setId(resultSet.getInt("id"));
-                    conferenceRoom.setName(resultSet.getString("name"));
-                    conferenceRoom.setCapacity(resultSet.getInt("capacity"));
-
-                    List<Workspace> workspaces = findWorkspacesByConferenceRoomId(conferenceRoom.getId());
-                    conferenceRoom.setWorkspaces(workspaces);
-
-                    return Optional.of(conferenceRoom);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return Optional.empty();
+        List<ConferenceRoom> conferenceRooms = jdbcTemplate.query(sql, new Object[]{id}, new ConferenceRoomRowMapper());
+        return conferenceRooms.isEmpty() ? Optional.empty() : Optional.of(conferenceRooms.get(0));
     }
 
     /**
@@ -88,26 +111,8 @@ public class ConferenceRoomDAOImpl implements ConferenceRoomDAO {
      */
     @Override
     public List<ConferenceRoom> findAllConferenceRooms() {
-        List<ConferenceRoom> conferenceRooms = new ArrayList<>();
         String sql = "SELECT * FROM " + CONFERENCE_TABLE_NAME;
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql);
-             ResultSet resultSet = preparedStatement.executeQuery()) {
-            while (resultSet.next()) {
-                ConferenceRoom conferenceRoom = new ConferenceRoom();
-                conferenceRoom.setId(resultSet.getInt("id"));
-                conferenceRoom.setName(resultSet.getString("name"));
-                conferenceRoom.setCapacity(resultSet.getInt("capacity"));
-
-                List<Workspace> workspaces = findWorkspacesByConferenceRoomId(conferenceRoom.getId());
-                conferenceRoom.setWorkspaces(workspaces);
-
-                conferenceRooms.add(conferenceRoom);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return conferenceRooms;
+        return jdbcTemplate.query(sql, new ConferenceRoomRowMapper());
     }
 
     /**
@@ -118,15 +123,7 @@ public class ConferenceRoomDAOImpl implements ConferenceRoomDAO {
     @Override
     public void updateConferenceRoom(ConferenceRoom conferenceRoom) {
         String sql = "UPDATE " + CONFERENCE_TABLE_NAME + " SET name = ?, capacity = ? WHERE id = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setString(1, conferenceRoom.getName());
-            preparedStatement.setInt(2, conferenceRoom.getCapacity());
-            preparedStatement.setInt(3, conferenceRoom.getId());
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        jdbcTemplate.update(sql, conferenceRoom.getName(), conferenceRoom.getCapacity(), conferenceRoom.getId());
     }
 
     /**
@@ -137,13 +134,7 @@ public class ConferenceRoomDAOImpl implements ConferenceRoomDAO {
     @Override
     public void deleteConferenceRoom(int id) {
         String sql = "DELETE FROM " + CONFERENCE_TABLE_NAME + " WHERE id = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setInt(1, id);
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        jdbcTemplate.update(sql, id);
     }
 
     /**
@@ -154,29 +145,10 @@ public class ConferenceRoomDAOImpl implements ConferenceRoomDAO {
      */
     @Override
     public void addWorkspaceToConferenceRoom(int conferenceRoomId, Workspace workspace) {
-        String sql = "INSERT INTO " + WORKSPACE_TABLE_NAME + " (name, \"conference_room_id\") VALUES (?, ?)";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            preparedStatement.setString(1, workspace.getName());
-            preparedStatement.setInt(2, conferenceRoomId);
-            int affectedRows = preparedStatement.executeUpdate();
-
-            if (affectedRows == 0) {
-                throw new SQLException("Creating workspace failed, no rows affected.");
-            }
-
-            try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    workspace.setId(generatedKeys.getInt(1));
-                } else {
-                    throw new SQLException("Creating workspace failed, no ID obtained.");
-                }
-            }
-
-            System.out.println("Added workspace: " + workspace.getName() + " to conference room ID: " + conferenceRoomId);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
+        String sql = "INSERT INTO " + WORKSPACE_TABLE_NAME + " (name, \"conference_room_id\") VALUES (?, ?) RETURNING id";
+        Integer newId = jdbcTemplate.queryForObject(sql, new Object[]{workspace.getName(), conferenceRoomId}, Integer.class);
+        if (newId != null) {
+            workspace.setId(newId);
         }
     }
 
@@ -188,26 +160,8 @@ public class ConferenceRoomDAOImpl implements ConferenceRoomDAO {
      */
     @Override
     public List<Workspace> findWorkspacesByConferenceRoomId(int conferenceRoomId) {
-        List<Workspace> workspaces = new ArrayList<>();
         String sql = "SELECT * FROM " + WORKSPACE_TABLE_NAME + " WHERE \"conference_room_id\" = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setInt(1, conferenceRoomId);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    Workspace workspace = new Workspace(resultSet.getString("name"));
-                    workspace.setId(resultSet.getInt("id"));
-
-                    List<Booking> bookings = findBookingsByWorkspaceId(workspace.getId());
-                    workspace.setBookings(bookings);
-
-                    workspaces.add(workspace);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return workspaces;
+        return jdbcTemplate.query(sql, new Object[]{conferenceRoomId}, new WorkspaceRowMapper());
     }
 
     /**
@@ -218,26 +172,8 @@ public class ConferenceRoomDAOImpl implements ConferenceRoomDAO {
      */
     @Override
     public List<Booking> findBookingsByWorkspaceId(int workspaceId) {
-        List<Booking> bookings = new ArrayList<>();
         String sql = "SELECT * FROM " + BOOKING_TABLE_NAME + " WHERE \"workspace_id\" = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setInt(1, workspaceId);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    Booking booking = new Booking();
-                    booking.setId(resultSet.getInt("id"));
-                    booking.setWorkspaceId(resultSet.getInt("workspace_id"));
-                    booking.setBookedBy(resultSet.getString("booked_by"));
-                    booking.setBookingTime(resultSet.getTimestamp("booking_time").toLocalDateTime());
-                    booking.setBookingDurationHours(resultSet.getInt("duration_hours"));
-                    bookings.add(booking);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return bookings;
+        return jdbcTemplate.query(sql, new Object[]{workspaceId}, new BookingRowMapper());
     }
 
     /**
@@ -248,31 +184,11 @@ public class ConferenceRoomDAOImpl implements ConferenceRoomDAO {
      */
     @Override
     public List<ConferenceRoom> findRoomsByDate(LocalDate date) {
-        List<ConferenceRoom> conferenceRooms = new ArrayList<>();
         String sql = "SELECT " + CONFERENCE_TABLE_NAME + ".* FROM " + CONFERENCE_TABLE_NAME +
                 " JOIN " + WORKSPACE_TABLE_NAME + " ON " + CONFERENCE_TABLE_NAME + ".id = " + WORKSPACE_TABLE_NAME + ".\"conference_room_id\"" +
                 " JOIN " + BOOKING_TABLE_NAME + " ON " + WORKSPACE_TABLE_NAME + ".id = " + BOOKING_TABLE_NAME + ".\"workspace_id\"" +
                 " WHERE " + BOOKING_TABLE_NAME + ".\"booking_time\"::date = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setDate(1, Date.valueOf(date));
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    ConferenceRoom conferenceRoom = new ConferenceRoom();
-                    conferenceRoom.setId(resultSet.getInt("id"));
-                    conferenceRoom.setName(resultSet.getString("name"));
-                    conferenceRoom.setCapacity(resultSet.getInt("capacity"));
-
-                    List<Workspace> workspaces = findWorkspacesByConferenceRoomId(conferenceRoom.getId());
-                    conferenceRoom.setWorkspaces(workspaces);
-
-                    conferenceRooms.add(conferenceRoom);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return conferenceRooms;
+        return jdbcTemplate.query(sql, new Object[]{date}, new ConferenceRoomRowMapper());
     }
 
     /**
@@ -283,31 +199,11 @@ public class ConferenceRoomDAOImpl implements ConferenceRoomDAO {
      */
     @Override
     public List<ConferenceRoom> findRoomsByUser(String userName) {
-        List<ConferenceRoom> conferenceRooms = new ArrayList<>();
         String sql = "SELECT " + CONFERENCE_TABLE_NAME + ".* FROM " + CONFERENCE_TABLE_NAME +
                 " JOIN " + WORKSPACE_TABLE_NAME + " ON " + CONFERENCE_TABLE_NAME + ".id = " + WORKSPACE_TABLE_NAME + ".\"conference_room_id\"" +
                 " JOIN " + BOOKING_TABLE_NAME + " ON " + WORKSPACE_TABLE_NAME + ".id = " + BOOKING_TABLE_NAME + ".\"workspace_id\"" +
                 " WHERE " + BOOKING_TABLE_NAME + ".\"booked_by\" = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setString(1, userName);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    ConferenceRoom conferenceRoom = new ConferenceRoom();
-                    conferenceRoom.setId(resultSet.getInt("id"));
-                    conferenceRoom.setName(resultSet.getString("name"));
-                    conferenceRoom.setCapacity(resultSet.getInt("capacity"));
-
-                    List<Workspace> workspaces = findWorkspacesByConferenceRoomId(conferenceRoom.getId());
-                    conferenceRoom.setWorkspaces(workspaces);
-
-                    conferenceRooms.add(conferenceRoom);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return conferenceRooms;
+        return jdbcTemplate.query(sql, new Object[]{userName}, new ConferenceRoomRowMapper());
     }
 
     /**
@@ -317,28 +213,10 @@ public class ConferenceRoomDAOImpl implements ConferenceRoomDAO {
      */
     @Override
     public List<ConferenceRoom> findRoomsWithAvailableWorkspaces() {
-        List<ConferenceRoom> conferenceRooms = new ArrayList<>();
         String sql = "SELECT " + CONFERENCE_TABLE_NAME + ".* FROM " + CONFERENCE_TABLE_NAME +
                 " JOIN " + WORKSPACE_TABLE_NAME + " ON " + CONFERENCE_TABLE_NAME + ".id = " + WORKSPACE_TABLE_NAME + ".\"conference_room_id\"" +
                 " LEFT JOIN " + BOOKING_TABLE_NAME + " ON " + WORKSPACE_TABLE_NAME + ".id = " + BOOKING_TABLE_NAME + ".\"workspace_id\"" +
                 " WHERE " + BOOKING_TABLE_NAME + ".id IS NULL";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql);
-             ResultSet resultSet = preparedStatement.executeQuery()) {
-            while (resultSet.next()) {
-                ConferenceRoom conferenceRoom = new ConferenceRoom();
-                conferenceRoom.setId(resultSet.getInt("id"));
-                conferenceRoom.setName(resultSet.getString("name"));
-                conferenceRoom.setCapacity(resultSet.getInt("capacity"));
-
-                List<Workspace> workspaces = findWorkspacesByConferenceRoomId(conferenceRoom.getId());
-                conferenceRoom.setWorkspaces(workspaces);
-
-                conferenceRooms.add(conferenceRoom);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return conferenceRooms;
+        return jdbcTemplate.query(sql, new ConferenceRoomRowMapper());
     }
 }

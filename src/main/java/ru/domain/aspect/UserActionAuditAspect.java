@@ -5,11 +5,13 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * Логгируем аудит действий пользователя через аспект.
  */
 @Aspect
+@Component
 public class UserActionAuditAspect {
     private static final Logger logger = LoggerFactory.getLogger(UserActionAuditAspect.class);
 

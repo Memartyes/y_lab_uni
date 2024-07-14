@@ -2,11 +2,11 @@ package ru.domain.managers;
 
 import lombok.Getter;
 import lombok.Setter;
-import ru.domain.config.WorkspaceConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import ru.domain.dao.ConferenceRoomDAO;
 import ru.domain.dao.WorkspaceDAO;
 import ru.domain.entities.ConferenceRoom;
-import ru.domain.config.DefaultConferenceRooms;
 import ru.domain.entities.Workspace;
 import ru.domain.util.BookingUtil;
 
@@ -17,12 +17,14 @@ import java.time.LocalDate;
 /**
  * Определим класс для управления Конференц-залами.
  */
+@Service
 @Getter
 @Setter
 public class ConferenceRoomManager {
     private final ConferenceRoomDAO conferenceRoomDAO;
     private final WorkspaceDAO workspaceDAO;
 
+    @Autowired
     public ConferenceRoomManager(ConferenceRoomDAO conferenceRoomDAO, WorkspaceDAO workspaceDAO) {
         this.conferenceRoomDAO = conferenceRoomDAO;
         this.workspaceDAO = workspaceDAO;

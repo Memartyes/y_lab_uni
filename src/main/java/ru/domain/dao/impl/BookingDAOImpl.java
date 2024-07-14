@@ -1,17 +1,53 @@
 package ru.domain.dao.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 import ru.domain.dao.BookingDAO;
 import ru.domain.entities.Booking;
-import ru.domain.util.jdbc.DatabaseUtil;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Реализвация DAO для бронирований.
+ */
+@Repository
 public class BookingDAOImpl implements BookingDAO {
+
     private static final String TABLE_NAME = "coworking.\"bookings-liquibase\"";
+
+    private final JdbcTemplate jdbcTemplate;
+
+    /**
+     * Конструктор с внедрением зависимости DataSource.
+     *
+     * @param dataSource источник данных
+     */
+    @Autowired
+    public BookingDAOImpl(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+    /**
+     * Преобразовуем строки результата SQL-запроса в объект Booking.
+     */
+    private static final class BookingRowMapper implements RowMapper<Booking> {
+        @Override
+        public Booking mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Booking booking = new Booking();
+            booking.setId(rs.getInt("id"));
+            booking.setWorkspaceId(rs.getInt("workspace_id"));
+            booking.setBookedBy(rs.getString("booked_by"));
+            booking.setBookingTime(rs.getTimestamp("booking_time").toLocalDateTime());
+            booking.setBookingDurationHours(rs.getInt("duration_hours"));
+            return booking;
+        }
+    }
 
     /**
      * Добавляем бронирование.
@@ -20,31 +56,10 @@ public class BookingDAOImpl implements BookingDAO {
      */
     @Override
     public void addBooking(Booking booking) {
-        String sql = "INSERT INTO " + TABLE_NAME + " (\"workspace_id\", \"booked_by\", \"booking_time\", \"duration_hours\") VALUES (?, ?, ?, ?)";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            preparedStatement.setInt(1, booking.getWorkspaceId());
-            preparedStatement.setString(2, booking.getBookedBy());
-            preparedStatement.setTimestamp(3, Timestamp.valueOf(booking.getBookingTime()));
-            preparedStatement.setInt(4, booking.getBookingDurationHours());
-            int affectedRows = preparedStatement.executeUpdate();
-
-            if (affectedRows == 0) {
-                throw new SQLException("Failed to insert row into " + TABLE_NAME);
-            }
-
-            try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    booking.setId(generatedKeys.getInt(1));
-                } else {
-                    throw new SQLException("Failed to insert row into " + TABLE_NAME);
-                }
-            }
-
-            System.out.println("Booking added successfully");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
+        String sql = "INSERT INTO " + TABLE_NAME + " (\"workspace_id\", \"booked_by\", \"booking_time\", \"duration_hours\") VALUES (?, ?, ?, ?) RETURNING id";
+        Integer newId = jdbcTemplate.queryForObject(sql, new Object[]{booking.getWorkspaceId(), booking.getBookedBy(), booking.getBookingTime(), booking.getBookingDurationHours()}, Integer.class);
+        if (newId != null) {
+            booking.setId(newId);
         }
     }
 
@@ -56,27 +71,9 @@ public class BookingDAOImpl implements BookingDAO {
      */
     @Override
     public Optional<Booking> findBookingById(int id) {
-        String sql = "SELECT * FROM " + TABLE_NAME + " WHERE \"id\" = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setInt(1, id);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    Booking booking = new Booking();
-                    booking.setId(resultSet.getInt("id"));
-                    booking.setWorkspaceId(resultSet.getInt("workspace_id"));
-                    booking.setBookedBy(resultSet.getString("booked_by"));
-                    booking.setBookingTime(resultSet.getTimestamp("booking_time").toLocalDateTime());
-                    booking.setBookingDurationHours(resultSet.getInt("duration_hours"));
-
-                    return Optional.of(booking);
-                }
-            }
-        } catch (SQLException e ) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
-        }
-        return Optional.empty();
+        String sql = "SELECT * FROM " + TABLE_NAME + " WHERE id = ?";
+        List<Booking> bookings = jdbcTemplate.query(sql, new Object[]{id}, new BookingRowMapper());
+        return bookings.isEmpty() ? Optional.empty() : Optional.of(bookings.get(0));
     }
 
     /**
@@ -86,25 +83,8 @@ public class BookingDAOImpl implements BookingDAO {
      */
     @Override
     public List<Booking> findAllBookings() {
-        List<Booking> bookings = new ArrayList<>();
         String sql = "SELECT * FROM " + TABLE_NAME;
-        try (Connection connection = DatabaseUtil.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            ResultSet resultSet = preparedStatement.executeQuery()) {
-            while (resultSet.next()) {
-                Booking booking = new Booking();
-                booking.setId(resultSet.getInt("id"));
-                booking.setWorkspaceId(resultSet.getInt("workspace_id"));
-                booking.setBookedBy(resultSet.getString("booked_by"));
-                booking.setBookingTime(resultSet.getTimestamp("booking_time").toLocalDateTime());
-                booking.setBookingDurationHours(resultSet.getInt("duration_hours"));
-                bookings.add(booking);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
-        }
-        return bookings;
+        return jdbcTemplate.query(sql, new BookingRowMapper());
     }
 
     /**
@@ -115,24 +95,7 @@ public class BookingDAOImpl implements BookingDAO {
     @Override
     public void updateBooking(Booking booking) {
         String sql = "UPDATE " + TABLE_NAME + " SET \"workspace_id\" = ?, \"booked_by\" = ?, \"booking_time\" = ?, \"duration_hours\" = ? WHERE id = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setInt(1, booking.getWorkspaceId());
-            preparedStatement.setString(2, booking.getBookedBy());
-            preparedStatement.setTimestamp(3, Timestamp.valueOf(booking.getBookingTime()));
-            preparedStatement.setInt(4, booking.getBookingDurationHours());
-            preparedStatement.setInt(5, booking.getId());
-            int affectedRows = preparedStatement.executeUpdate();
-
-            if (affectedRows == 0) {
-                throw new SQLException("Failed to update row into " + TABLE_NAME);
-            }
-
-            System.out.println("Booking updated successfully");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
-        }
+        jdbcTemplate.update(sql, booking.getWorkspaceId(), booking.getBookedBy(), booking.getBookingTime(), booking.getBookingDurationHours(), booking.getId());
     }
 
     /**
@@ -142,22 +105,8 @@ public class BookingDAOImpl implements BookingDAO {
      */
     @Override
     public void deleteBooking(int id) {
-        String sql = "DELETE FROM " + TABLE_NAME + " WHERE \"id\" = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setInt(1, id);
-            int affectedRows = preparedStatement.executeUpdate();
-
-            if (affectedRows == 0) {
-                throw new SQLException("Failed to delete row into " + TABLE_NAME);
-            }
-
-            System.out.println("Booking deleted successfully");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
-        }
-
+        String sql = "DELETE FROM " + TABLE_NAME + " WHERE id = ?";
+        jdbcTemplate.update(sql, id);
     }
 
     /**
@@ -168,27 +117,8 @@ public class BookingDAOImpl implements BookingDAO {
      */
     @Override
     public List<Booking> findBookingsByWorkspaceId(int workspaceId) {
-        List<Booking> bookings = new ArrayList<>();
         String sql = "SELECT * FROM " + TABLE_NAME + " WHERE \"workspace_id\" = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setInt(1, workspaceId);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    Booking booking = new Booking();
-                    booking.setId(resultSet.getInt("id"));
-                    booking.setWorkspaceId(resultSet.getInt("workspace_id"));
-                    booking.setBookedBy(resultSet.getString("booked_by"));
-                    booking.setBookingTime(resultSet.getTimestamp("booking_time").toLocalDateTime());
-                    booking.setBookingDurationHours(resultSet.getInt("duration_hours"));
-                    bookings.add(booking);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
-        }
-        return bookings;
+        return jdbcTemplate.query(sql, new Object[]{workspaceId}, new BookingRowMapper());
     }
 
     /**
@@ -199,26 +129,8 @@ public class BookingDAOImpl implements BookingDAO {
      */
     @Override
     public List<Booking> findBookingsByUser(String bookedBy) {
-        List<Booking> bookings = new ArrayList<>();
         String sql = "SELECT * FROM " + TABLE_NAME + " WHERE \"booked_by\" = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setString(1, bookedBy);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    Booking booking = new Booking();
-                    booking.setId(resultSet.getInt("id"));
-                    booking.setWorkspaceId(resultSet.getInt("workspace_id"));
-                    booking.setBookedBy(resultSet.getString("booked_by"));
-                    booking.setBookingTime(resultSet.getTimestamp("booking_time").toLocalDateTime());
-                    booking.setBookingDurationHours(resultSet.getInt("duration_hours"));
-                    bookings.add(booking);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return bookings;
+        return jdbcTemplate.query(sql, new Object[]{bookedBy}, new BookingRowMapper());
     }
 
     /**
@@ -229,26 +141,8 @@ public class BookingDAOImpl implements BookingDAO {
      */
     @Override
     public List<Booking> findBookingsByDate(LocalDateTime date) {
-        List<Booking> bookings = new ArrayList<>();
         String sql = "SELECT * FROM " + TABLE_NAME + " WHERE \"booking_time\"::date = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setDate(1, Date.valueOf(date.toLocalDate()));
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    Booking booking = new Booking();
-                    booking.setId(resultSet.getInt("id"));
-                    booking.setWorkspaceId(resultSet.getInt("workspace_id"));
-                    booking.setBookedBy(resultSet.getString("booked_by"));
-                    booking.setBookingTime(resultSet.getTimestamp("booking_time").toLocalDateTime());
-                    booking.setBookingDurationHours(resultSet.getInt("duration_hours"));
-                    bookings.add(booking);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return bookings;
+        return jdbcTemplate.query(sql, new Object[]{date.toLocalDate()}, new BookingRowMapper());
     }
 
     /**
@@ -259,13 +153,7 @@ public class BookingDAOImpl implements BookingDAO {
     @Override
     public void cancelBookingsByUser(String bookedBy) {
         String sql = "DELETE FROM " + TABLE_NAME + " WHERE \"booked_by\" = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setString(1, bookedBy);
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        jdbcTemplate.update(sql, bookedBy);
     }
 
     /**
@@ -278,18 +166,7 @@ public class BookingDAOImpl implements BookingDAO {
     @Override
     public boolean isBookingAvailable(int workspaceId, LocalDateTime bookingTime) {
         String sql = "SELECT COUNT(*) FROM " + TABLE_NAME + " WHERE \"workspace_id\" = ? AND \"booking_time\" = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setInt(1, workspaceId);
-            preparedStatement.setTimestamp(2, Timestamp.valueOf(bookingTime));
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next() && resultSet.getInt(1) == 0) {
-                    return true;
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
+        Integer count = jdbcTemplate.queryForObject(sql, new Object[]{workspaceId, bookingTime}, Integer.class);
+        return count != null && count == 0;
     }
 }

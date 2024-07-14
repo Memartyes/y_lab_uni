@@ -1,5 +1,7 @@
 package ru.domain.managers;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import ru.domain.dao.UserDAO;
 import ru.domain.entities.User;
 
@@ -9,9 +11,11 @@ import java.util.Optional;
 /**
  * Определяем класс для регистрации пользователя в системе.
  */
+@Service
 public class UserRegistrationManager {
     private final UserDAO userDAO;
 
+    @Autowired
     public UserRegistrationManager(UserDAO userDAO) {
         this.userDAO = userDAO;
     }

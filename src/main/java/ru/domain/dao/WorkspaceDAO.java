@@ -1,5 +1,6 @@
 package ru.domain.dao;
 
+import org.springframework.stereotype.Repository;
 import ru.domain.entities.Booking;
 import ru.domain.entities.Workspace;
 

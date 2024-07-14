@@ -1,6 +1,8 @@
 package ru.domain.managers;
 
 import lombok.Getter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import ru.domain.dao.UserDAO;
 import ru.domain.entities.User;
 
@@ -12,9 +14,11 @@ import java.util.Optional;
  * Определяем класс для аутентификации.
  */
 @Getter
+@Service
 public class UserAuthenticationManager {
     private final UserDAO userDAO;
 
+    @Autowired
     public UserAuthenticationManager(UserDAO userDAO) {
         this.userDAO = userDAO;
     }

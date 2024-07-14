@@ -6,39 +6,4 @@
 
     <display-name>y_lab_uni</display-name>
 
-<!--    <servlet>-->
-<!--        <servlet-name>UserServlet</servlet-name>-->
-<!--        <servlet-class>ru.domain.servlet.UserServlet</servlet-class>-->
-<!--    </servlet>-->
-<!--    <servlet-mapping>-->
-<!--        <servlet-name>UserServlet</servlet-name>-->
-<!--        <url-pattern>/users/*</url-pattern>-->
-<!--    </servlet-mapping>-->
-
-<!--    <servlet>-->
-<!--        <servlet-name>ConferenceRoomServlet</servlet-name>-->
-<!--        <servlet-class>ru.domain.servlet.ConferenceRoomServlet</servlet-class>-->
-<!--    </servlet>-->
-<!--    <servlet-mapping>-->
-<!--        <servlet-name>ConferenceRoomServlet</servlet-name>-->
-<!--        <url-pattern>/conference_rooms/*</url-pattern>-->
-<!--    </servlet-mapping>-->
-
-<!--    <servlet>-->
-<!--        <servlet-name>WorkspaceServlet</servlet-name>-->
-<!--        <servlet-class>ru.domain.servlet.WorkspaceServlet</servlet-class>-->
-<!--    </servlet>-->
-<!--    <servlet-mapping>-->
-<!--        <servlet-name>WorkspaceServlet</servlet-name>-->
-<!--        <url-pattern>/workspaces/*</url-pattern>-->
-<!--    </servlet-mapping>-->
-
-<!--    <servlet>-->
-<!--        <servlet-name>BookingServlet</servlet-name>-->
-<!--        <servlet-class>ru.domain.servlet.BookingServlet</servlet-class>-->
-<!--    </servlet>-->
-<!--    <servlet-mapping>-->
-<!--        <servlet-name>BookingServlet</servlet-name>-->
-<!--        <url-pattern>/bookings/*</url-pattern>-->
-<!--    </servlet-mapping>-->
 </web-app>

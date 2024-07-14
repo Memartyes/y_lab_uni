@@ -1,6 +1,8 @@
 package ru.domain.managers;
 
 import lombok.Getter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import ru.domain.config.WorkspaceConfig;
 import ru.domain.dao.BookingDAO;
 import ru.domain.dao.WorkspaceDAO;
@@ -17,11 +19,13 @@ import java.util.Optional;
 /**
  * Определяем класс для управления рабочими местами
  */
+@Service
 @Getter
 public class WorkspaceManager {
     private final WorkspaceDAO workspaceDAO;
     private final BookingDAO bookingDAO;
 
+    @Autowired
     public WorkspaceManager(WorkspaceDAO workspaceDAO, BookingDAO bookingDAO) {
         this.workspaceDAO = workspaceDAO;
         this.bookingDAO = bookingDAO;

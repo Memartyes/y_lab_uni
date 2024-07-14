@@ -1,20 +1,68 @@
 package ru.domain.dao.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 import ru.domain.dao.WorkspaceDAO;
 import ru.domain.entities.Booking;
 import ru.domain.entities.Workspace;
-import ru.domain.util.jdbc.DatabaseUtil;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Реализвация DAO для рабочих мест.
+ */
+@Repository
 public class WorkspaceDAOImpl implements WorkspaceDAO {
-    private static final String CONFERENCE_TABLE_NAME = "coworking.\"conference_rooms-liquibase\"";
     private static final String WORKSPACE_TABLE_NAME = "coworking.\"workspaces-liquibase\"";
     private static final String BOOKING_TABLE_NAME = "coworking.\"bookings-liquibase\"";
+
+    private final JdbcTemplate jdbcTemplate;
+
+    /**
+     * Конструктор с внедрением зависимости DataSource.
+     *
+     * @param dataSource источник данных
+     */
+    @Autowired
+    public WorkspaceDAOImpl(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+    /**
+     * Преобразовуем строки результата SQL-запроса в объект Workspace.
+     */
+    private static final class WorkspaceRowMapper implements RowMapper<Workspace> {
+        @Override
+        public Workspace mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Workspace workspace = new Workspace();
+            workspace.setId(rs.getInt("id"));
+            workspace.setName(rs.getString("name"));
+            return workspace;
+        }
+    }
+
+    /**
+     * Преобразовуем строки результата SQL-запроса в объект Booking.
+     */
+    private static final class BookingRowMapper implements RowMapper<Booking> {
+        @Override
+        public Booking mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Booking booking = new Booking();
+            booking.setId(rs.getInt("id"));
+            booking.setWorkspaceId(rs.getInt("workspace_id"));
+            booking.setBookedBy(rs.getString("booked_by"));
+            booking.setBookingTime(rs.getTimestamp("booking_time").toLocalDateTime());
+            booking.setBookingDurationHours(rs.getInt("duration_hours"));
+            return booking;
+        }
+    }
 
     /**
      * Добавляем рабочее место в базу данных.
@@ -23,28 +71,10 @@ public class WorkspaceDAOImpl implements WorkspaceDAO {
      */
     @Override
     public void addWorkspace(Workspace workspace) {
-        String sql = "INSERT INTO " + WORKSPACE_TABLE_NAME + " (name) VALUES (?)";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            preparedStatement.setString(1, workspace.getName());
-            int affectedRows = preparedStatement.executeUpdate();
-
-            if (affectedRows == 0) {
-                throw new SQLException("Creating workspace failed, no rows affected.");
-            }
-
-            try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    workspace.setId(generatedKeys.getInt(1));
-                } else {
-                    throw new SQLException("Creating workspace failed, no ID obtained.");
-                }
-            }
-
-            System.out.println("Created workspace: " + workspace.getName());
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
+        String sql = "INSERT INTO " + WORKSPACE_TABLE_NAME + " (name) VALUES (?) RETURNING id";
+        Integer newId = jdbcTemplate.queryForObject(sql, new Object[]{workspace.getName()}, Integer.class);
+        if (newId != null) {
+            workspace.setId(newId);
         }
     }
 
@@ -57,28 +87,8 @@ public class WorkspaceDAOImpl implements WorkspaceDAO {
     @Override
     public Optional<Workspace> findWorkspaceById(int id) {
         String sql = "SELECT * FROM " + WORKSPACE_TABLE_NAME + " WHERE id = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setLong(1, id);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    Workspace workspace = new Workspace(resultSet.getString("name"));
-                    workspace.setId(resultSet.getInt("id"));
-
-                    List<Booking> bookings = findBookingsByWorkspaceId(workspace.getId());
-                    workspace.setBookings(bookings);
-
-                    System.out.println("Found workspace: " + workspace.getName());
-                    return Optional.of(workspace);
-                }
-            }
-
-            System.out.println("Failed to find workspace with ID: " + id);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
-        }
-        return Optional.empty();
+        List<Workspace> workspaces = jdbcTemplate.query(sql, new Object[]{id}, new WorkspaceRowMapper());
+        return workspaces.isEmpty() ? Optional.empty() : Optional.of(workspaces.get(0));
     }
 
     /**
@@ -90,24 +100,8 @@ public class WorkspaceDAOImpl implements WorkspaceDAO {
     @Override
     public Optional<Workspace> findWorkspaceByName(String name) {
         String sql = "SELECT * FROM " + WORKSPACE_TABLE_NAME + " WHERE name = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setString(1, name);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    Workspace workspace = new Workspace(resultSet.getString("name"));
-                    workspace.setId(resultSet.getInt("id"));
-
-                    List<Booking> bookings = findBookingsByWorkspaceId(workspace.getId());
-                    workspace.setBookings(bookings);
-
-                    return Optional.of(workspace);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return Optional.empty();
+        List<Workspace> workspaces = jdbcTemplate.query(sql, new Object[]{name}, new WorkspaceRowMapper());
+        return workspaces.isEmpty() ? Optional.empty() : Optional.of(workspaces.get(0));
     }
 
     /**
@@ -117,28 +111,8 @@ public class WorkspaceDAOImpl implements WorkspaceDAO {
      */
     @Override
     public List<Workspace> findAllWorkspaces() {
-        List<Workspace> workspaces = new ArrayList<>();
         String sql = "SELECT * FROM " + WORKSPACE_TABLE_NAME;
-        try (Connection connection = DatabaseUtil.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            ResultSet resultSet = preparedStatement.executeQuery()) {
-            while (resultSet.next()) {
-                Workspace workspace = new Workspace(resultSet.getString("name"));
-                workspace.setId(resultSet.getInt("id"));
-
-                List<Booking> bookings = findBookingsByWorkspaceId(workspace.getId());
-                workspace.setBookings(bookings);
-
-                workspaces.add(workspace);
-            }
-
-            System.out.println("Found " + workspaces.size() + " workspaces");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
-        }
-
-        return workspaces;
+        return jdbcTemplate.query(sql, new WorkspaceRowMapper());
     }
 
     /**
@@ -149,17 +123,7 @@ public class WorkspaceDAOImpl implements WorkspaceDAO {
     @Override
     public void updateWorkspace(Workspace workspace) {
         String sql = "UPDATE " + WORKSPACE_TABLE_NAME + " SET name = ? WHERE id = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setString(1, workspace.getName());
-            preparedStatement.setInt(2, workspace.getId());
-            preparedStatement.executeUpdate();
-
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
-        }
+        jdbcTemplate.update(sql, workspace.getName(), workspace.getId());
     }
 
     /**
@@ -170,14 +134,7 @@ public class WorkspaceDAOImpl implements WorkspaceDAO {
     @Override
     public void deleteWorkspace(int id) {
         String sql = "DELETE FROM " + WORKSPACE_TABLE_NAME + " WHERE id = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setInt(1, id);
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
-        }
+        jdbcTemplate.update(sql, id);
     }
 
     /**
@@ -188,27 +145,8 @@ public class WorkspaceDAOImpl implements WorkspaceDAO {
      */
     @Override
     public List<Booking> findBookingsByWorkspaceId(int workspaceId) {
-        List<Booking> bookings = new ArrayList<>();
         String sql = "SELECT * FROM " + BOOKING_TABLE_NAME + " WHERE \"workspace_id\" = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setInt(1, workspaceId);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    Booking booking = new Booking();
-                    booking.setId(resultSet.getInt("id"));
-                    booking.setWorkspaceId(resultSet.getInt("workspace_id"));
-                    booking.setBookedBy(resultSet.getString("booked_by"));
-                    booking.setBookingTime(resultSet.getTimestamp("booking_time").toLocalDateTime());
-                    booking.setBookingDurationHours(resultSet.getInt("duration_hours"));
-                    bookings.add(booking);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
-        }
-        return bookings;
+        return jdbcTemplate.query(sql, new Object[]{workspaceId}, new BookingRowMapper());
     }
 
     /**
@@ -218,21 +156,9 @@ public class WorkspaceDAOImpl implements WorkspaceDAO {
      */
     @Override
     public List<Workspace> findAvailableWorkspaces() {
-        List<Workspace> workspaces = new ArrayList<>();
         String sql = "SELECT * FROM " + WORKSPACE_TABLE_NAME +
                 " LEFT JOIN " + BOOKING_TABLE_NAME + " ON " + WORKSPACE_TABLE_NAME + ".id = " + BOOKING_TABLE_NAME + ".\"workspace_id\" WHERE " + BOOKING_TABLE_NAME + ".id IS NULL";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql);
-             ResultSet resultSet = preparedStatement.executeQuery()) {
-            while (resultSet.next()) {
-                Workspace workspace = new Workspace(resultSet.getString("name"));
-                workspace.setId(resultSet.getInt("id"));
-                workspaces.add(workspace);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return workspaces;
+        return jdbcTemplate.query(sql, new WorkspaceRowMapper());
     }
 
     /**
@@ -243,49 +169,20 @@ public class WorkspaceDAOImpl implements WorkspaceDAO {
      */
     @Override
     public List<Workspace> findWorkspacesByConferenceRoomId(int conferenceRoomId) {
-        List<Workspace> workspaces = new ArrayList<>();
         String sql = "SELECT * FROM " + WORKSPACE_TABLE_NAME + " WHERE \"conference_room_id\" = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setInt(1, conferenceRoomId);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    Workspace workspace = new Workspace(resultSet.getString("name"));
-                    workspace.setId(resultSet.getInt("id"));
-
-                    List<Booking> bookings = findBookingsByWorkspaceId(workspace.getId());
-                    workspace.setBookings(bookings);
-
-                    workspaces.add(workspace);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return workspaces;
+        return jdbcTemplate.query(sql, new Object[]{conferenceRoomId}, new WorkspaceRowMapper());
     }
 
+    /**
+     * Находим забронированные рабочие места.
+     *
+     * @return
+     */
     @Override
     public List<Workspace> findBookedWorkspaces() {
-        List<Workspace> workspaces = new ArrayList<>();
         String sql = "SELECT * FROM " + WORKSPACE_TABLE_NAME +
                 " JOIN " + BOOKING_TABLE_NAME + " ON " + WORKSPACE_TABLE_NAME + ".id = " + BOOKING_TABLE_NAME + ".\"workspace_id\"";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql);
-             ResultSet resultSet = preparedStatement.executeQuery()) {
-            while (resultSet.next()) {
-                Workspace workspace = new Workspace(resultSet.getString("name"));
-                workspace.setId(resultSet.getInt("id"));
-
-                List<Booking> bookings = findBookingsByWorkspaceId(workspace.getId());
-                workspace.setBookings(bookings);
-
-                workspaces.add(workspace);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return workspaces;
+        return jdbcTemplate.query(sql, new WorkspaceRowMapper());
     }
 
     /**
@@ -298,19 +195,8 @@ public class WorkspaceDAOImpl implements WorkspaceDAO {
     @Override
     public boolean isWorkspaceAvailable(int workspaceId, LocalDateTime bookingTime) {
         String sql = "SELECT COUNT(*) FROM " + BOOKING_TABLE_NAME + " WHERE \"workspace_id\" = ? AND \"booking_time\" = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setInt(1, workspaceId);
-            preparedStatement.setTimestamp(2, Timestamp.valueOf(bookingTime));
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    return resultSet.getInt(1) == 0;
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
+        Integer count = jdbcTemplate.queryForObject(sql, new Object[]{workspaceId, bookingTime}, Integer.class);
+        return count != null && count == 0;
     }
 
     /**

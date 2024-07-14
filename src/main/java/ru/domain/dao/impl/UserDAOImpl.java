@@ -1,16 +1,51 @@
 package ru.domain.dao.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 import ru.domain.dao.UserDAO;
 import ru.domain.entities.User;
-import ru.domain.util.jdbc.DatabaseUtil;
 
+import javax.sql.DataSource;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Реализвация DAO для пользователей
+ */
+@Repository
 public class UserDAOImpl implements UserDAO {
+
     private static final String TABLE_NAME = "coworking.\"users-liquibase\"";
+
+    private final JdbcTemplate jdbcTemplate;
+
+    /**
+     * Конструктор с внедрением зависимости DataSource.
+     *
+     * @param dataSource
+     */
+    @Autowired
+    public UserDAOImpl(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+    /**
+     * Преобразовуем строки результата SQL-запроса в объект User.
+     */
+    private static final class UserRowMapper implements RowMapper<User> {
+        @Override
+        public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+            User user = new User();
+            user.setId(rs.getInt("id"));
+            user.setName(rs.getString("name"));
+            user.setPassword(rs.getString("password"));
+            user.setEmail(rs.getString("email"));
+            return user;
+        }
+    }
 
     /**
      * Создаем и добавляем нового пользователя в базу данных.
@@ -19,30 +54,10 @@ public class UserDAOImpl implements UserDAO {
      */
     @Override
     public void addUser(User user) {
-        String sql = "INSERT INTO " + TABLE_NAME + " (name, email, password) VALUES (?, ?, ?)";
-        try (Connection connection = DatabaseUtil.getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            preparedStatement.setString(1, user.getName());
-            preparedStatement.setString(2, user.getEmail());
-            preparedStatement.setString(3, user.getPassword());
-            int affectedRows = preparedStatement.executeUpdate();
-
-            if (affectedRows == 0) {
-                throw new SQLException("Failed to create user, no rows affected.");
-            }
-
-            try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    user.setId(generatedKeys.getInt(1));
-                } else {
-                    throw new SQLException("Failed to create user, no ID obtained.");
-                }
-            }
-
-            System.out.println("Created user: " + user.getName());
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
+        String sql = "INSERT INTO " + TABLE_NAME + " (name, email, password) VALUES (?, ?, ?) RETURNING id";
+        Integer newId = jdbcTemplate.queryForObject(sql, new Object[]{user.getName(), user.getEmail(), user.getPassword()}, Integer.class);
+        if (newId != null) {
+            user.setId(newId);
         }
     }
 
@@ -55,25 +70,8 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public Optional<User> findUserById(int id) {
         String sql = "SELECT * FROM " + TABLE_NAME + " WHERE id = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setInt(1, id);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    User user = new User(resultSet.getString("name"), resultSet.getString("email"), resultSet.getString("password"));
-                    user.setId(resultSet.getInt("id"));
-
-                    System.out.println("Found user: " + user.getName());
-                    return Optional.of(user);
-                }
-            }
-
-            System.out.println("User with id " + id + " not found.");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
-        }
-        return Optional.empty();
+        List<User> users = jdbcTemplate.query(sql, new Object[]{id}, new UserRowMapper());
+        return users.isEmpty() ? Optional.empty() : Optional.of(users.get(0));
     }
 
     /**
@@ -85,23 +83,8 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public Optional<User> findUserByName(String name) {
         String sql = "SELECT * FROM " + TABLE_NAME + " WHERE name = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setString(1, name);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    User user = new User(resultSet.getString("name"), resultSet.getString("email"), resultSet.getString("password"));
-                    user.setId(resultSet.getInt("id"));
-
-                    System.out.println("Found user: " + user.getName());
-                    return Optional.of(user);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
-        }
-        return Optional.empty();
+        List<User> users = jdbcTemplate.query(sql, new Object[]{name}, new UserRowMapper());
+        return users.isEmpty() ? Optional.empty() : Optional.of(users.get(0));
     }
 
     /**
@@ -113,23 +96,8 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public Optional<User> findUserByEmail(String email) {
         String sql = "SELECT * FROM " + TABLE_NAME + " WHERE email = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setString(1, email);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    User user = new User(resultSet.getString("name"), resultSet.getString("email"), resultSet.getString("password"));
-                    user.setId(resultSet.getInt("id"));
-
-                    System.out.println("Found user: " + user.getName());
-                    return Optional.of(user);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
-        }
-        return Optional.empty();
+        List<User> users = jdbcTemplate.query(sql, new Object[]{email}, new UserRowMapper());
+        return users.isEmpty() ? Optional.empty() : Optional.of(users.get(0));
     }
 
     /**
@@ -139,23 +107,8 @@ public class UserDAOImpl implements UserDAO {
      */
     @Override
     public List<User> findAllUsers() {
-        List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM " + TABLE_NAME;
-        try (Connection connection = DatabaseUtil.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            ResultSet resultSet = preparedStatement.executeQuery()) {
-            while (resultSet.next()) {
-                User user = new User(resultSet.getString("name"), resultSet.getString("email"), resultSet.getString("password"));
-                user.setId(resultSet.getInt("id"));
-                users.add(user);
-            }
-
-            System.out.println("Found " + users.size() + " users.");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
-        }
-        return users;
+        return jdbcTemplate.query(sql, new UserRowMapper());
     }
 
     /**
@@ -166,19 +119,7 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public void updateUser(User user) {
         String sql = "UPDATE " + TABLE_NAME + " SET name = ?, email = ?, password = ? WHERE id = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setString(1, user.getName());
-            preparedStatement.setString(2, user.getEmail());
-            preparedStatement.setString(3, user.getPassword());
-            preparedStatement.setInt(4, user.getId());
-            preparedStatement.executeUpdate();
-
-            System.out.println("Updated user: " + user.getName());
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
-        }
+        jdbcTemplate.update(sql, user.getName(), user.getEmail(), user.getPassword(), user.getId());
     }
 
     /**
@@ -189,15 +130,6 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public void deleteUser(int id) {
         String sql = "DELETE FROM " + TABLE_NAME + " WHERE id = ?";
-        try (Connection connection = DatabaseUtil.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setInt(1, id);
-            preparedStatement.executeUpdate();
-
-            System.out.println("Deleted user: " + id);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("SQLException: " + e.getMessage());
-        }
+        jdbcTemplate.update(sql, id);
     }
 }

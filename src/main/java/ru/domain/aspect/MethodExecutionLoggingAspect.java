@@ -5,11 +5,13 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * Логируем выполнения методов с замером времени через аспект
  */
 @Aspect
+@Component
 public class MethodExecutionLoggingAspect {
     private static final Logger logger = LoggerFactory.getLogger(MethodExecutionLoggingAspect.class);
 

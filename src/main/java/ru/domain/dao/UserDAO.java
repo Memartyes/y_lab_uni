@@ -1,5 +1,6 @@
 package ru.domain.dao;
 
+import org.springframework.stereotype.Repository;
 import ru.domain.entities.User;
 
 import java.util.List;
