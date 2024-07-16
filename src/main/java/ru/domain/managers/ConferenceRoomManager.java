@@ -8,7 +8,7 @@ import ru.domain.dao.ConferenceRoomDAO;
 import ru.domain.dao.WorkspaceDAO;
 import ru.domain.entities.ConferenceRoom;
 import ru.domain.entities.Workspace;
-import ru.domain.util.WorkingTimeUtil;
+import ru.domain.util.WorkingDateTimeUtil;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -142,7 +142,7 @@ public class ConferenceRoomManager {
      * @return true if the conference room is available on the specified date, false otherwise
      */
     public boolean isConferenceRoomAvailable(int conferenceRoomId, LocalDateTime date) {
-        return WorkingTimeUtil.isWithinWorkingHours(date) && WorkingTimeUtil.isWorkingDay(date) && conferenceRoomDAO.findRoomsByDate(date.toLocalDate()).stream()
+        return WorkingDateTimeUtil.isWithinWorkingHours(date) && WorkingDateTimeUtil.isWorkingDay(date) && conferenceRoomDAO.findRoomsByDate(date.toLocalDate()).stream()
                 .noneMatch(room -> room.getId() == conferenceRoomId);
     }
 }

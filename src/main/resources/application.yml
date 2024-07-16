@@ -8,6 +8,7 @@ spring:
     change-log: classpath:db/changelog/changelog.xml
 
 server:
+  port: 8080
   servlet:
     context-path: /y_lab_uni
 

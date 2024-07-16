@@ -7,7 +7,7 @@ import ru.domain.dao.BookingDAO;
 import ru.domain.dao.WorkspaceDAO;
 import ru.domain.entities.Booking;
 import ru.domain.entities.Workspace;
-import ru.domain.util.WorkingTimeUtil;
+import ru.domain.util.WorkingDateTimeUtil;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -82,7 +82,7 @@ public class WorkspaceManager {
      * @return true if the workspace is available at the given time, false otherwise
      */
     public boolean isWorkspaceAvailable(int workspaceId, LocalDateTime bookingTime) {
-        return WorkingTimeUtil.isWithinWorkingHours(bookingTime) && WorkingTimeUtil.isWorkingDay(bookingTime) && workspaceDAO.isWorkspaceAvailable(workspaceId, bookingTime);
+        return WorkingDateTimeUtil.isWithinWorkingHours(bookingTime) && WorkingDateTimeUtil.isWorkingDay(bookingTime) && workspaceDAO.isWorkspaceAvailable(workspaceId, bookingTime);
     }
 
     /**
