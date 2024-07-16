@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 /**
  * Класс для проверки рабочих дней и рабочих часов.
  */
-public class BookingUtil {
+public class WorkingTimeUtil {
     /**
      * Проверяет, является ли указанная дата рабочим днем.
      *

@@ -3,16 +3,13 @@ package ru.domain.managers;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.domain.config.WorkspaceConfig;
 import ru.domain.dao.BookingDAO;
 import ru.domain.dao.WorkspaceDAO;
 import ru.domain.entities.Booking;
 import ru.domain.entities.Workspace;
-import ru.domain.entities.ConferenceRoom;
-import ru.domain.util.BookingUtil;
+import ru.domain.util.WorkingTimeUtil;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -85,7 +82,7 @@ public class WorkspaceManager {
      * @return true if the workspace is available at the given time, false otherwise
      */
     public boolean isWorkspaceAvailable(int workspaceId, LocalDateTime bookingTime) {
-        return BookingUtil.isWithinWorkingHours(bookingTime) && BookingUtil.isWorkingDay(bookingTime) && workspaceDAO.isWorkspaceAvailable(workspaceId, bookingTime);
+        return WorkingTimeUtil.isWithinWorkingHours(bookingTime) && WorkingTimeUtil.isWorkingDay(bookingTime) && workspaceDAO.isWorkspaceAvailable(workspaceId, bookingTime);
     }
 
     /**
