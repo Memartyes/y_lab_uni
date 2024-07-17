@@ -31,5 +31,4 @@ public enum WorkspaceConfig {
         this.value = -1;
         this.days = days;
     }
-
 }

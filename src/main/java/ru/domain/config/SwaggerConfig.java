@@ -7,11 +7,13 @@ import io.swagger.v3.oas.models.info.License;
 import org.springdoc.core.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 /**
  * Конфигурационный класс для Swagger
  */
 @Configuration
+@EnableWebMvc
 public class SwaggerConfig {
 
     @Bean

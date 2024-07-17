@@ -11,6 +11,13 @@ server:
   servlet:
     context-path: /y_lab_uni
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+
 logging:
   level:
     root: INFO

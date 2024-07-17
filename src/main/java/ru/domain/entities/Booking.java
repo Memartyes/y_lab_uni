@@ -1,13 +1,8 @@
 package ru.domain.entities;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import ru.domain.config.WorkspaceConfig;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 
 /**
  * Класс представляет бронирование рабочего места.
@@ -30,26 +25,4 @@ public class Booking {
     }
 
     public Booking() {}
-
-    /**
-     * Проверяет, истекло ли время бронирования.
-     *
-     * @return true if the booking time is expired, false otherwise
-     */
-    public boolean isExpired() {
-        LocalDateTime expirationTime = bookingTime.plusHours(bookingDurationHours);
-        return LocalDateTime.now().isAfter(expirationTime);
-    }
-
-    /**
-     * Возвращает строку, представляющую время окончания бронирования.
-     *
-     * @return the booked time as string, or null if not booked
-     */
-    public String getFormattedEndTime() {
-        if (bookingTime == null) {
-            return null;
-        }
-        return bookingTime.plusHours(bookingDurationHours).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-    }
 }

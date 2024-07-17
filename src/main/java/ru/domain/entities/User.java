@@ -1,14 +1,12 @@
 package ru.domain.entities;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 /**
  * Класс представляет пользователей.
  */
 
-@Getter
-@Setter
+@Data
 public class User {
     private int id;
     private String name;
@@ -30,13 +28,4 @@ public class User {
     }
 
     public User() {}
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", email='" + email + '\'' +
-                '}';
-    }
 }

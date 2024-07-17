@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class MethodExecutionLoggingAspect {
     private static final Logger logger = LoggerFactory.getLogger(MethodExecutionLoggingAspect.class);
 
-    @Around("execution(* ru.domain.*.*(..))")
+    @Around("execution(* ru.domain.*.*.*(..))")
     public Object logMethodExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
         long startTime = System.currentTimeMillis();
         Object result = joinPoint.proceed();

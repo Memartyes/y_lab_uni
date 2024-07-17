@@ -1,7 +1,7 @@
 package ru.domain.controllers;
 
-//import io.swagger.v3.oas.annotations.Operation;
-//import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,7 +17,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/bookings")
-//@Tag(name = "Booking Controller Management", description = "APIs for managing bookings")
+@Tag(name = "Booking Controller Management", description = "APIs for managing bookings")
 public class BookingController {
 
     private final WorkspaceManager workspaceManager;
@@ -32,7 +32,7 @@ public class BookingController {
      * @return the booking list
      */
     @GetMapping
-//    @Operation(summary = "Get all bookings", description = "Retrieve a list of all users")
+    @Operation(summary = "Get all bookings", description = "Retrieve a list of all users")
     public ResponseEntity<List<BookingDTO>> getAllBookings() {
         List<Booking> bookings = workspaceManager.findAllBookings();
         List<BookingDTO> bookingDTOS = BookingMapper.INSTANCE.toDTOList(bookings);
@@ -45,7 +45,7 @@ public class BookingController {
      * @return the booking by id
      */
     @GetMapping("/{id}")
-//    @Operation(summary = "Get booking by ID", description = "Retrieve booking by ID")
+    @Operation(summary = "Get booking by ID", description = "Retrieve booking by ID")
     public ResponseEntity<BookingDTO> getBookingById(@PathVariable int id) {
         Optional<Booking> booking = workspaceManager.findBookingById(id);
         return booking.map(value -> ResponseEntity.ok(BookingMapper.INSTANCE.toDTO(value)))
@@ -58,7 +58,7 @@ public class BookingController {
      * @return the HTTP-status
      */
     @PostMapping
-//    @Operation(summary = "Create a new booking", description = "Add a new booking")
+    @Operation(summary = "Create a new booking", description = "Add a new booking")
     public ResponseEntity<String> createBooking(@Valid @RequestBody BookingDTO bookingDTO) {
         try {
             Booking booking = BookingMapper.INSTANCE.toEntity(bookingDTO);
@@ -76,7 +76,7 @@ public class BookingController {
      * @return
      */
     @PutMapping("/{id}")
-//    @Operation(summary = "Update existing booking", description = "Update booking by ID")
+    @Operation(summary = "Update existing booking", description = "Update booking by ID")
     public ResponseEntity<String> updateBooking(@PathVariable int id, @Valid @RequestBody BookingDTO bookingDTO) {
         try {
             Booking booking = BookingMapper.INSTANCE.toEntity(bookingDTO);
@@ -95,7 +95,7 @@ public class BookingController {
      * @return the HTTP-status
      */
     @DeleteMapping("/{id}")
-//    @Operation(summary = "Delete booking", description = "Remove a booking by ID")
+    @Operation(summary = "Delete booking", description = "Remove a booking by ID")
     public ResponseEntity<String> deleteBooking(@PathVariable int id) {
         try {
             workspaceManager.cancelBooking(id);
