@@ -15,7 +15,7 @@ URL-адреса:
 
 URL-адреса Swagger:
 -
-- Swagger-UI: `http://localhost:8080/y_lab_uni/swagger-ui/index.html`.
-- API-DOCS: `http://localhost:8080/y_lab_uni/v3/api-docs`.
+- SpringDoc Swagger-UI: `http://localhost:8080/y_lab_uni/swagger-ui/index.html`.
+- API-Docs: `http://localhost:8080/y_lab_uni/v3/api-docs`.
 
 
