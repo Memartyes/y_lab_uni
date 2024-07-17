@@ -1,7 +1,7 @@
 package ru.domain.controllers;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
+//import io.swagger.v3.oas.annotations.Operation;
+//import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,7 +17,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/workspaces")
-@Tag(name = "Workspace Controller Management", description = "APIs for managing workspaces")
+//@Tag(name = "Workspace Controller Management", description = "APIs for managing workspaces")
 public class WorkspaceController {
 
     private final WorkspaceManager workspaceManager;
@@ -33,7 +33,7 @@ public class WorkspaceController {
      * @return the workspace list
      */
     @GetMapping
-    @Operation(summary = "Get all workspaces", description = "Retrieve a list of all workspaces")
+//    @Operation(summary = "Get all workspaces", description = "Retrieve a list of all workspaces")
     public ResponseEntity<List<WorkspaceDTO>> getAllWorkspaces() {
         List<Workspace> workspaces = workspaceManager.findAllWorkspaces();
         List<WorkspaceDTO> workspaceDTOS = WorkspaceMapper.INSTANCE.toDTOList(workspaces);
@@ -46,7 +46,7 @@ public class WorkspaceController {
      * @return the workspace
      */
     @GetMapping("/{id}")
-    @Operation(summary = "Get workspace by ID", description = "Retrieve workspace by ID")
+//    @Operation(summary = "Get workspace by ID", description = "Retrieve workspace by ID")
     public ResponseEntity<WorkspaceDTO> getWorkspaceById(@PathVariable int id) {
         Optional<Workspace> workspace = workspaceManager.findWorkspaceById(id);
         return workspace.map(value -> ResponseEntity.ok(WorkspaceMapper.INSTANCE.toDTO(value)))
@@ -60,7 +60,7 @@ public class WorkspaceController {
      * @return the HTTP-status
      */
     @PostMapping
-    @Operation(summary = "Create a new workspace", description = "Add a new workspace")
+//    @Operation(summary = "Create a new workspace", description = "Add a new workspace")
     public ResponseEntity<String> createWorkspace(@Valid @RequestBody WorkspaceDTO workspaceDTO) {
         try {
             Workspace workspace = WorkspaceMapper.INSTANCE.toEntity(workspaceDTO);
@@ -79,7 +79,7 @@ public class WorkspaceController {
      * @return the HTTP-status
      */
     @PutMapping("/{id}")
-    @Operation(summary = "Update existing workspace", description = "Update workspace by ID")
+//    @Operation(summary = "Update existing workspace", description = "Update workspace by ID")
     public ResponseEntity<String> updateWorkspace(@PathVariable int id, @Valid @RequestBody WorkspaceDTO workspaceDTO) {
         try {
             Workspace workspace = WorkspaceMapper.INSTANCE.toEntity(workspaceDTO);
@@ -98,7 +98,7 @@ public class WorkspaceController {
      * @return the HTTP-status
      */
     @DeleteMapping("/{id}")
-    @Operation(summary = "Delete workspace", description = "Remove a workspace by ID")
+//    @Operation(summary = "Delete workspace", description = "Remove a workspace by ID")
     public ResponseEntity<String> deleteWorkspace(@PathVariable int id) {
         try {
             workspaceManager.deleteWorkspace(id);
