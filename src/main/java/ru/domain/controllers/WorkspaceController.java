@@ -36,6 +36,9 @@ public class WorkspaceController {
     @Operation(summary = "Get all workspaces", description = "Retrieve a list of all workspaces")
     public ResponseEntity<List<WorkspaceDTO>> getAllWorkspaces() {
         List<Workspace> workspaces = workspaceManager.findAllWorkspaces();
+        for (Workspace workspace : workspaces) {
+            workspace.setBookings(workspaceManager.findBookingsByWorkspaceId(workspace.getId()));
+        }
         List<WorkspaceDTO> workspaceDTOS = WorkspaceMapper.INSTANCE.toDTOList(workspaces);
         return ResponseEntity.ok(workspaceDTOS);
     }
@@ -49,6 +52,7 @@ public class WorkspaceController {
     @Operation(summary = "Get workspace by ID", description = "Retrieve workspace by ID")
     public ResponseEntity<WorkspaceDTO> getWorkspaceById(@PathVariable int id) {
         Optional<Workspace> workspace = workspaceManager.findWorkspaceById(id);
+        workspace.ifPresent(value -> value.setBookings(workspaceManager.findBookingsByWorkspaceId(value.getId())));
         return workspace.map(value -> ResponseEntity.ok(WorkspaceMapper.INSTANCE.toDTO(value)))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }

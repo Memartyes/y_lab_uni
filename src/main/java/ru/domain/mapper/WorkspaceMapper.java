@@ -12,8 +12,10 @@ import java.util.List;
 public interface WorkspaceMapper {
     WorkspaceMapper INSTANCE = Mappers.getMapper(WorkspaceMapper.class);
 
+    @Mapping(target = "bookings", source = "bookings")
     WorkspaceDTO toDTO(Workspace workspace);
 
+    @Mapping(target = "bookings", source = "bookings")
     Workspace toEntity(WorkspaceDTO workspaceDTO);
 
     List<WorkspaceDTO> toDTOList(List<Workspace> workspaces);

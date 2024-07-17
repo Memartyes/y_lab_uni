@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.domain.dto.ConferenceRoomDTO;
 import ru.domain.entities.ConferenceRoom;
+import ru.domain.entities.Workspace;
 import ru.domain.managers.ConferenceRoomManager;
+import ru.domain.managers.WorkspaceManager;
 import ru.domain.mapper.ConferenceRoomMapper;
 
 import java.util.List;
@@ -21,10 +23,12 @@ import java.util.Optional;
 public class ConferenceRoomController {
 
     private final ConferenceRoomManager conferenceRoomManager;
+    private final WorkspaceManager workspaceManager;
 
     @Autowired
-    public ConferenceRoomController(ConferenceRoomManager conferenceRoomManager) {
+    public ConferenceRoomController(ConferenceRoomManager conferenceRoomManager, WorkspaceManager workspaceManager) {
         this.conferenceRoomManager = conferenceRoomManager;
+        this.workspaceManager = workspaceManager;
     }
 
     /**
@@ -36,6 +40,13 @@ public class ConferenceRoomController {
     @Operation(summary = "Get all conference rooms", description = "Retrieve a list of all conference rooms")
     public ResponseEntity<List<ConferenceRoomDTO>> getAllConferenceRooms() {
         List<ConferenceRoom> conferenceRoomList = conferenceRoomManager.findAllConferenceRooms();
+        for (ConferenceRoom conferenceRoom : conferenceRoomList) {
+            List<Workspace> workspaces = conferenceRoomManager.findWorkspacesByConferenceRoomId(conferenceRoom.getId());
+            for (Workspace workspace : workspaces) {
+                workspace.setBookings(workspaceManager.findBookingsByWorkspaceId(workspace.getId()));
+            }
+            conferenceRoom.setWorkspaces(workspaces);
+        }
         List<ConferenceRoomDTO> conferenceRoomDTOList = ConferenceRoomMapper.INSTANCE.toDTOList(conferenceRoomList);
         return ResponseEntity.ok(conferenceRoomDTOList);
     }
@@ -50,6 +61,13 @@ public class ConferenceRoomController {
     @Operation(summary = "Get conference room by ID", description = "Retrieve conference room by ID")
     public ResponseEntity<ConferenceRoomDTO> getConferenceRoomById(@PathVariable int id) {
         Optional<ConferenceRoom> conferenceRoom = conferenceRoomManager.findConferenceRoomById(id);
+        conferenceRoom.ifPresent(room -> {
+            List<Workspace> workspaces = conferenceRoomManager.findWorkspacesByConferenceRoomId(room.getId());
+            for (Workspace workspace : workspaces) {
+                workspace.setBookings(workspaceManager.findBookingsByWorkspaceId(workspace.getId()));
+            }
+            room.setWorkspaces(workspaces);
+        });
         return conferenceRoom.map(room -> ResponseEntity.ok(ConferenceRoomMapper.INSTANCE.toDTO(room)))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
@@ -74,6 +92,7 @@ public class ConferenceRoomController {
 
     /**
      * Обновляем информацию о конференц-зале.
+     *
      * @param id the conference room ID
      * @param conferenceRoomDTO
      * @return the HTTP-status
