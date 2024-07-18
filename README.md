@@ -13,7 +13,7 @@ URL-адреса:
 - Workspaces: `http://localhost:8080/y_lab_uni/workspaces`, additional `/{id}`.
 - Conference Rooms `http://localhost:8080/y_lab_uni/conference_rooms`, additional `/{id}`.
 
-URL-адреса Swagger:
+URL-адреса SpringDoc:
 -
 - SpringDoc Swagger-UI: `http://localhost:8080/y_lab_uni/swagger-ui/index.html`.
 - API-Docs: `http://localhost:8080/y_lab_uni/v3/api-docs`.
