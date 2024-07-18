@@ -3,7 +3,7 @@
 
 Запуск приложения по ссылке:
 -
-`src/main/java/ru/domain/Application.java`
+`main-app/src/main/java/io/coworking/Application.java`
 -
 
 URL-адреса:
